@@ -39,10 +39,17 @@ const admitSchema = new mongoose.Schema({
     default: Date.now
   },
   appointmentData: {
-    type: Object,
-    default: null
+    patientName: { type: String },
+    patientAge: { type: Number },
+    patientGender: { type: String },
+    contactNumber: { type: String },
+    appointmentDate: { type: Date },
+    appointmentTime: { type: String },
+    reason: { type: String },
+    doctor: { type: String },
+    status: { type: String }
   },
-  // New discharge fields
+  // Discharge fields
   dischargePlanning: {
     medicalSummary: { type: String, default: '' },
     medications: { type: String, default: '' },

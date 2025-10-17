@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET single admit record - FIXED THIS ENDPOINT
+// GET single admit record
 router.get('/:id', async (req, res) => {
   try {
     const admit = await Admit.findById(req.params.id);
@@ -26,19 +26,47 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST new admit record
+// POST new admit record with appointment data
 router.post('/', async (req, res) => {
   try {
-    const { admitID, fullname, nic, phone, email, assignedDoctor, appointmentData } = req.body;
+    const { 
+      admitID, 
+      fullname, 
+      nic, 
+      phone, 
+      email, 
+      assignedDoctor, 
+      appointmentData,
+      // Appointment fields
+      patientName,
+      patientAge,
+      patientGender,
+      contactNumber,
+      appointmentDate,
+      appointmentTime,
+      reason,
+      doctor,
+      status
+    } = req.body;
     
     const newAdmit = new Admit({
       admitID,
-      fullname,
+      fullname: fullname || patientName,
       nic,
-      phone,
+      phone: phone || contactNumber,
       email,
-      assignedDoctor,
-      appointmentData
+      assignedDoctor: assignedDoctor || doctor,
+      appointmentData: appointmentData || {
+        patientName: fullname || patientName,
+        patientAge,
+        patientGender,
+        contactNumber: phone || contactNumber,
+        appointmentDate,
+        appointmentTime,
+        reason,
+        doctor: assignedDoctor || doctor,
+        status
+      }
     });
 
     await newAdmit.save();
@@ -48,12 +76,23 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT update admit record - FIXED
+// GET admit records by patient email
+router.get('/patient/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const admits = await Admit.find({ email }).sort({ createdAt: -1 });
+    res.json({ success: true, admits });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// PUT update admit record
 router.put('/:id', async (req, res) => {
   try {
     const admit = await Admit.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body }, // Use $set to properly update fields
+      { $set: req.body },
       { new: true, runValidators: true }
     );
 
@@ -76,7 +115,6 @@ router.put('/:id/discharge', async (req, res) => {
       status: 'Discharge Planning'
     };
 
-    // Only update fields that are provided
     if (dischargePlanning) updateData.dischargePlanning = dischargePlanning;
     if (dischargeSummary) updateData.dischargeSummary = dischargeSummary;
     if (dischargeInstructions) updateData.dischargeInstructions = dischargeInstructions;
@@ -103,47 +141,6 @@ router.put('/:id/finalize-discharge', async (req, res) => {
   try {
     const { roomReleaseStatus } = req.body;
     
-    const admit = await Admit.findByIdAndUpdate(
-      req.params.id,
-      { 
-        $set: {
-          roomReleaseStatus,
-          status: 'Discharged',
-          dischargeDate: new Date()
-        }
-      },
-      { new: true, runValidators: true }
-    );
-
-    if (!admit) {
-      return res.status(404).json({ success: false, error: 'Admit record not found' });
-    }
-
-    res.json({ success: true, admit });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-});
-
-// GET admitted patients (for discharge list)
-router.get('/status/admitted', async (req, res) => {
-  try {
-    const admittedPatients = await Admit.find({ 
-      status: { $in: ['Admitted', 'Discharge Planning'] } 
-    }).sort({ createdAt: -1 });
-    
-    res.json({ success: true, patients: admittedPatients });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// PUT finalize discharge - UPDATED TO HANDLE ROOM RELEASE
-router.put('/:id/finalize-discharge', async (req, res) => {
-  try {
-    const { roomReleaseStatus } = req.body;
-    
-    // Find the admit record first
     const admit = await Admit.findById(req.params.id);
     if (!admit) {
       return res.status(404).json({ success: false, error: 'Admit record not found' });
@@ -159,7 +156,6 @@ router.put('/:id/finalize-discharge', async (req, res) => {
       }
     }
 
-    // Update admit record
     const updatedAdmit = await Admit.findByIdAndUpdate(
       req.params.id,
       { 
@@ -180,7 +176,20 @@ router.put('/:id/finalize-discharge', async (req, res) => {
   }
 });
 
-// DELETE admit record - UPDATED
+// GET admitted patients (for discharge list)
+router.get('/status/admitted', async (req, res) => {
+  try {
+    const admittedPatients = await Admit.find({ 
+      status: { $in: ['Admitted', 'Discharge Planning'] } 
+    }).sort({ createdAt: -1 });
+    
+    res.json({ success: true, patients: admittedPatients });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// DELETE admit record
 router.delete('/:id', async (req, res) => {
   try {
     const admit = await Admit.findById(req.params.id);
@@ -198,7 +207,6 @@ router.delete('/:id', async (req, res) => {
       }
     }
 
-    // Delete the admit record
     await Admit.findByIdAndDelete(req.params.id);
 
     res.json({ 

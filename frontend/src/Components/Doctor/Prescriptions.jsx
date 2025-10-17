@@ -15,6 +15,7 @@ import {
   DialogActions,
   IconButton,
   Box,
+  Chip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -42,20 +43,17 @@ const Prescriptions = () => {
   }, []);
 
   const fetchPrescriptions = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8081/prescriptions/prescriptions"
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setPrescriptions(data);
-    } catch (error) {
-      console.error("Error fetching prescriptions:", error);
+  try {
+    const response = await fetch("http://localhost:8081/api/prescriptions");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
-
+    const data = await response.json();
+    setPrescriptions(data);
+  } catch (error) {
+    console.error("Error fetching prescriptions:", error);
+  }
+};
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -65,7 +63,7 @@ const Prescriptions = () => {
     setSortBy(value);
 
     if (!value) {
-      fetchPrescriptions(); // Reset to original order
+      fetchPrescriptions();
       return;
     }
 
@@ -100,9 +98,9 @@ const Prescriptions = () => {
 
   const filteredPatients = prescriptions.filter(
     (prescription) =>
-      prescription.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (prescription.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       prescription.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prescription.patientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      prescription.patientEmail?.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (genderFilter ? prescription.gender === genderFilter : true) &&
       prescription.email === doctor?.email
   );
@@ -123,9 +121,9 @@ const Prescriptions = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8081/prescriptions/prescriptions/${id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(`http://localhost:8081/api/prescriptions/${id}`, {
+      method: "DELETE",
+    });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,7 +141,7 @@ const Prescriptions = () => {
     setFOpen(false);
     setSelectedPrescription(null);
     setIsEditing(false);
-    fetchPrescriptions(); // Refresh the list after form closes
+    fetchPrescriptions();
   };
 
   const handleOpen = () => {
@@ -193,7 +191,6 @@ const Prescriptions = () => {
         return;
       }
 
-      // Format data for Excel
       const excelData = filteredPatients.map(prescription => ({
         "First Name": prescription.firstName,
         "Last Name": prescription.lastName,
@@ -211,18 +208,17 @@ const Prescriptions = () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Prescriptions');
       
-      // Auto-size columns
       const colWidths = [
-        { wch: 12 }, // First Name
-        { wch: 12 }, // Last Name
-        { wch: 5 },  // Age
-        { wch: 12 }, // Date of Birth
-        { wch: 8 },  // Gender
-        { wch: 20 }, // Patient Email
-        { wch: 20 }, // Doctor Email
-        { wch: 15 }, // Prescription Date
-        { wch: 30 }, // Prescription
-        { wch: 10 }, // Medications Count
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 5 },
+        { wch: 12 },
+        { wch: 8 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 10 },
       ];
       ws['!cols'] = colWidths;
       
@@ -390,9 +386,26 @@ const Prescriptions = () => {
                     <Typography variant="body2" noWrap>
                       <strong>Email:</strong> {prescription.patientEmail}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {prescription.medications?.length || 0} medication(s)
-                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      {prescription.medications?.slice(0, 2).map((med, index) => (
+                        <Chip
+                          key={index}
+                          label={med.medication}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                      {prescription.medications?.length > 2 && (
+                        <Chip
+                          label={`+${prescription.medications.length - 2} more`}
+                          size="small"
+                          color="secondary"
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
                   </CardContent>
                   <ArrowForwardIosIcon color="action" />
                 </Card>
