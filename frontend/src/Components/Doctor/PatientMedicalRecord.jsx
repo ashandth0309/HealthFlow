@@ -14,6 +14,16 @@ import {
   TableRow,
   Paper,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   Person,
@@ -23,6 +33,7 @@ import {
   MedicalServices,
   VideoCall,
   Add,
+  MeetingRoom,
 } from "@mui/icons-material";
 import Sidebar from "./SideBar";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -39,6 +50,11 @@ const PatientMedicalRecord = () => {
     email: "maini.bandara@example.com",
     lastVisit: "2024-03-15"
   });
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [consultationDate, setConsultationDate] = useState("");
+  const [consultationTime, setConsultationTime] = useState("");
+  const [doctorName, setDoctorName] = useState("");
 
   const visitHistory = [
     {
@@ -75,11 +91,69 @@ const PatientMedicalRecord = () => {
           gender: patient.gender,
           phone: patient.phone,
           email: patient.email,
-          // Include any other relevant patient data for the prescription form
         }
       } 
     });
   };
+
+  const handleStartInPersonConsultation = () => {
+    setConsultationDate("");
+    setConsultationTime("");
+    setDoctorName("");
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmInPersonConsultation = () => {
+    if (!consultationDate || !consultationTime || !doctorName) {
+      alert("Please fill all the required fields");
+      return;
+    }
+
+    // Create consultation data
+    const consultationData = {
+      patient: patient,
+      type: "In-Person Consultation",
+      doctor: doctorName,
+      date: consultationDate,
+      time: consultationTime,
+      timestamp: new Date().toLocaleString(),
+      status: "Scheduled",
+      scheduledDate: new Date(consultationDate).toLocaleDateString(),
+      scheduledTime: consultationTime,
+    };
+
+    // Store consultation data
+    const existingConsultations = JSON.parse(localStorage.getItem('consultations') || '[]');
+    existingConsultations.push(consultationData);
+    localStorage.setItem('consultations', JSON.stringify(existingConsultations));
+
+    // Close dialog and navigate to staff dashboard
+    setConfirmDialogOpen(false);
+    navigate('/staffdash', { 
+      state: { 
+        consultation: consultationData,
+        message: `In-person consultation scheduled for ${patient.name} with ${doctorName} on ${consultationDate} at ${consultationTime}`
+      } 
+    });
+  };
+
+  const cancelInPersonConsultation = () => {
+    setConfirmDialogOpen(false);
+  };
+
+  // Generate time slots
+  const generateTimeSlots = () => {
+    const times = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push(timeString);
+      }
+    }
+    return times;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
@@ -132,6 +206,20 @@ const PatientMedicalRecord = () => {
                     fullWidth
                   >
                     Start Telemedicine
+                  </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<MeetingRoom />}
+                    onClick={handleStartInPersonConsultation}
+                    fullWidth
+                    sx={{ 
+                      backgroundColor: "#2e7d32",
+                      '&:hover': {
+                        backgroundColor: "#1b5e20",
+                      }
+                    }}
+                  >
+                    Start In-Person Consultation
                   </Button>
                   <Button
                     variant="outlined"
@@ -241,6 +329,116 @@ const PatientMedicalRecord = () => {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Consultation Form Dialog */}
+        <Dialog
+          open={confirmDialogOpen}
+          onClose={cancelInPersonConsultation}
+          aria-labelledby="consultation-dialog-title"
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle id="consultation-dialog-title">
+            Schedule In-Person Consultation
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ mb: 3 }}>
+              Please schedule the in-person consultation for the patient.
+            </DialogContentText>
+
+            {/* Patient Information Display */}
+            <Card sx={{ mb: 3, backgroundColor: '#f8f9fa' }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Patient Information
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2">
+                      <strong>Name:</strong> {patient.name}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2">
+                      <strong>Age:</strong> {patient.age} years
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2">
+                      <strong>Phone:</strong> {patient.phone}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2">
+                      <strong>Email:</strong> {patient.email}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Consultation Form */}
+            <Box component="form" sx={{ mt: 2 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Consultation Date"
+                    type="date"
+                    value={consultationDate}
+                    onChange={(e) => setConsultationDate(e.target.value)}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    inputProps={{
+                      min: new Date().toISOString().split('T')[0]
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Consultation Time</InputLabel>
+                    <Select
+                      value={consultationTime}
+                      label="Consultation Time"
+                      onChange={(e) => setConsultationTime(e.target.value)}
+                    >
+                      {timeSlots.map((time) => (
+                        <MenuItem key={time} value={time}>
+                          {time}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Doctor Name"
+                    value={doctorName}
+                    onChange={(e) => setDoctorName(e.target.value)}
+                    placeholder="Enter doctor's name"
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={cancelInPersonConsultation} color="primary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmInPersonConsultation} 
+              color="primary" 
+              variant="contained"
+              disabled={!consultationDate || !consultationTime || !doctorName}
+            >
+              Schedule Consultation
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );

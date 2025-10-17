@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -13,6 +13,12 @@ import {
   Stepper,
   Step,
   StepLabel,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from "@mui/material";
 import {
   VideoCall,
@@ -20,9 +26,17 @@ import {
   Warning,
   Description,
   Send,
+  CallEnd,
+  Mic,
+  MicOff,
+  Videocam,
+  VideocamOff,
+  ScreenShare,
+  StopScreenShare,
 } from "@mui/icons-material";
 import Sidebar from "./SideBar";
 import { useLocation } from "react-router-dom";
+import axios from 'axios';
 
 const TelemedicineConsultation = () => {
   const location = useLocation();
@@ -34,12 +48,27 @@ const TelemedicineConsultation = () => {
     plan: ""
   });
   const [activeStep, setActiveStep] = useState(0);
+  
+  // Video call states
+  const [callState, setCallState] = useState('idle'); // 'idle', 'connecting', 'connected', 'error'
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [consultationId, setConsultationId] = useState(null);
+
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const peerConnectionRef = useRef(null);
+  const screenStreamRef = useRef(null);
+
+  const API_BASE_URL = 'http://localhost:8081/api';
 
   useEffect(() => {
     if (location.state?.patient) {
       setPatient(location.state.patient);
     } else {
-      // Default patient for demo
       setPatient({
         name: "Aisha Khan",
         age: 45,
@@ -49,7 +78,205 @@ const TelemedicineConsultation = () => {
         conditions: ["Hypertension (controlled)"]
       });
     }
+
+    // Cleanup on unmount
+    return () => {
+      stopVideoCall();
+    };
   }, [location]);
+
+  // Initialize WebRTC
+  const initializeWebRTC = async () => {
+    try {
+      setCallState('connecting');
+      
+      // Get user media
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+      
+      localStreamRef.current = stream;
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+
+      // Create peer connection (simplified - in real app you'd use signaling server)
+      const configuration = {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      };
+
+      peerConnectionRef.current = new RTCPeerConnection(configuration);
+
+      // Add local stream to peer connection
+      stream.getTracks().forEach(track => {
+        peerConnectionRef.current.addTrack(track, stream);
+      });
+
+      // Handle remote stream
+      peerConnectionRef.current.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+
+      setCallState('connected');
+      
+      // Create consultation record in backend
+      await createConsultation();
+      
+    } catch (error) {
+      console.error('Error initializing WebRTC:', error);
+      setCallState('error');
+    }
+  };
+
+  // Create consultation record
+  const createConsultation = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/consultations`, {
+        patientId: patient?.id,
+        doctorId: "doctor123", // In real app, get from auth context
+        status: 'in-progress'
+      });
+      
+      setConsultationId(response.data._id);
+    } catch (error) {
+      console.error('Error creating consultation:', error);
+    }
+  };
+
+  // Start video call
+  const startVideoCall = async () => {
+    try {
+      setShowVideoModal(true);
+      await initializeWebRTC();
+    } catch (error) {
+      console.error('Error starting video call:', error);
+      setCallState('error');
+    }
+  };
+
+  // Stop video call
+  const stopVideoCall = async () => {
+    try {
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
+
+      // Update consultation status
+      if (consultationId) {
+        await axios.post(`${API_BASE_URL}/daily/end-meeting`, {
+          consultationId,
+          duration: 0 // Calculate actual duration in real app
+        });
+      }
+
+      setCallState('idle');
+      setShowVideoModal(false);
+      setIsScreenSharing(false);
+    } catch (error) {
+      console.error('Error stopping video call:', error);
+    }
+  };
+
+  // Toggle microphone
+  const toggleMic = () => {
+    if (localStreamRef.current) {
+      const audioTracks = localStreamRef.current.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setIsMicOn(!isMicOn);
+    }
+  };
+
+  // Toggle camera
+  const toggleCamera = () => {
+    if (localStreamRef.current) {
+      const videoTracks = localStreamRef.current.getVideoTracks();
+      videoTracks.forEach(track => {
+        track.enabled = !track.enabled;
+      });
+      setIsCameraOn(!isCameraOn);
+    }
+  };
+
+  // Toggle screen share
+  const toggleScreenShare = async () => {
+    try {
+      if (!isScreenSharing) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+        
+        screenStreamRef.current = screenStream;
+        
+        // Replace video track with screen share
+        const videoTrack = screenStream.getVideoTracks()[0];
+        const sender = peerConnectionRef.current.getSenders().find(
+          s => s.track && s.track.kind === 'video'
+        );
+        
+        if (sender) {
+          await sender.replaceTrack(videoTrack);
+        }
+        
+        videoTrack.onended = () => {
+          toggleScreenShare();
+        };
+        
+        setIsScreenSharing(true);
+      } else {
+        // Switch back to camera
+        const cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+        
+        const videoTrack = cameraStream.getVideoTracks()[0];
+        const sender = peerConnectionRef.current.getSenders().find(
+          s => s.track && s.track.kind === 'video'
+        );
+        
+        if (sender) {
+          await sender.replaceTrack(videoTrack);
+        }
+        
+        if (screenStreamRef.current) {
+          screenStreamRef.current.getTracks().forEach(track => track.stop());
+        }
+        
+        setIsScreenSharing(false);
+      }
+    } catch (error) {
+      console.error('Error toggling screen share:', error);
+    }
+  };
+
+  // Save SOAP notes to backend
+  const saveSoapNotes = async () => {
+    try {
+      if (consultationId) {
+        await axios.patch(`${API_BASE_URL}/consultations/${consultationId}/soap-notes`, soapNotes);
+      }
+    } catch (error) {
+      console.error('Error saving SOAP notes:', error);
+    }
+  };
 
   const handleSoapChange = (section, value) => {
     setSoapNotes(prev => ({
@@ -66,8 +293,8 @@ const TelemedicineConsultation = () => {
     setActiveStep(prev => prev - 1);
   };
 
-  const handleSaveNotes = () => {
-    // Save SOAP notes logic here
+  const handleSaveNotes = async () => {
+    await saveSoapNotes();
     console.log("SOAP Notes saved:", soapNotes);
     alert("Consultation notes saved successfully!");
   };
@@ -146,27 +373,60 @@ const TelemedicineConsultation = () => {
                   <Typography variant="body2" gutterBottom align="center">
                     Video Call Interface
                   </Typography>
-                  <Box sx={{ 
-                    height: 200, 
-                    backgroundColor: '#bbdefb', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    borderRadius: 1,
-                    mb: 2
-                  }}>
-                    <Typography color="textSecondary">
-                      Video Feed
+                  
+                  {/* Video Call Status */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary">
+                      Status: {callState === 'idle' && 'Ready to start'}
+                      {callState === 'connecting' && 'Connecting...'}
+                      {callState === 'connected' && 'Call in progress'}
+                      {callState === 'error' && 'Error - Please try again'}
                     </Typography>
                   </Box>
-                  <Button 
-                    fullWidth 
-                    variant="contained" 
-                    startIcon={<VideoCall />}
-                  >
-                    Start Video Call
-                  </Button>
+
+                  {/* Video Call Controls */}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {callState === 'idle' ? (
+                      <Button 
+                        fullWidth 
+                        variant="contained" 
+                        startIcon={<VideoCall />}
+                        onClick={startVideoCall}
+                        disabled={callState === 'connecting'}
+                      >
+                        {callState === 'connecting' ? 'Connecting...' : 'Start Video Call'}
+                      </Button>
+                    ) : (
+                      <Button 
+                        fullWidth 
+                        variant="outlined" 
+                        startIcon={<VideoCall />}
+                        onClick={() => setShowVideoModal(true)}
+                      >
+                        Join Video Call
+                      </Button>
+                    )}
+                    
+                    {callState !== 'idle' && (
+                      <Button 
+                        fullWidth 
+                        variant="contained" 
+                        color="error"
+                        startIcon={<CallEnd />}
+                        onClick={stopVideoCall}
+                      >
+                        End Call
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
+
+                {/* Connection Info */}
+                {callState === 'connected' && (
+                  <Alert severity="success" sx={{ mt: 2 }}>
+                    Connected to patient successfully
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </Grid>
@@ -224,18 +484,6 @@ const TelemedicineConsultation = () => {
                   </Box>
                 )}
 
-                {activeStep === 3 && (
-                  <Box>
-                    <Typography variant="h6" gutterBottom>Consultation Summary</Typography>
-                    <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
-                      <Typography><strong>Subjective:</strong> {soapNotes.subjective}</Typography>
-                      <Typography><strong>Objective:</strong> {soapNotes.objective}</Typography>
-                      <Typography><strong>Assessment:</strong> {soapNotes.assessment}</Typography>
-                      <Typography><strong>Plan:</strong> {soapNotes.plan}</Typography>
-                    </Paper>
-                  </Box>
-                )}
-
                 {/* Navigation Buttons */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                   <Button
@@ -259,24 +507,147 @@ const TelemedicineConsultation = () => {
                     </Button>
                   )}
                 </Box>
-
-                {/* Next Steps */}
-                {activeStep === steps.length - 1 && (
-                  <Box sx={{ mt: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Next Steps
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Button variant="outlined">Digital Prescription</Button>
-                      <Button variant="outlined">Diagnostic Test Ordering</Button>
-                      <Button variant="outlined">Specialist Referral</Button>
-                    </Box>
-                  </Box>
-                )}
               </CardContent>
             </Card>
           </Grid>
         </Grid>
+
+        {/* Video Call Modal */}
+        <Dialog
+          open={showVideoModal}
+          onClose={() => setShowVideoModal(false)}
+          maxWidth="lg"
+          fullWidth
+          sx={{ '& .MuiDialog-paper': { height: '80vh' } }}
+        >
+          <DialogTitle>
+            Video Consultation - {patient.name}
+            <Typography variant="caption" display="block" color="textSecondary">
+              {callState === 'connected' ? 'Live' : 'Connecting...'}
+            </Typography>
+          </DialogTitle>
+          <DialogContent sx={{ position: 'relative', p: 0, backgroundColor: '#000' }}>
+            {/* Remote Video (Patient) */}
+            <Box
+              sx={{
+                width: '100%',
+                height: '70%',
+                backgroundColor: '#000',
+              }}
+            >
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            </Box>
+
+            {/* Local Video (Doctor) - Picture in Picture */}
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 80,
+                right: 16,
+                width: 200,
+                height: 150,
+                border: '2px solid white',
+                borderRadius: 2,
+                overflow: 'hidden',
+              }}
+            >
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+            </Box>
+
+            {/* Call Controls */}
+            {callState === 'connected' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 16,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  gap: 1,
+                  backgroundColor: 'rgba(0,0,0,0.7)',
+                  borderRadius: 2,
+                  p: 1,
+                }}
+              >
+                <IconButton 
+                  onClick={toggleMic}
+                  sx={{ 
+                    backgroundColor: isMicOn ? 'primary.main' : 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: isMicOn ? 'primary.dark' : 'error.dark',
+                    }
+                  }}
+                >
+                  {isMicOn ? <Mic /> : <MicOff />}
+                </IconButton>
+                
+                <IconButton 
+                  onClick={toggleCamera}
+                  sx={{ 
+                    backgroundColor: isCameraOn ? 'primary.main' : 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: isCameraOn ? 'primary.dark' : 'error.dark',
+                    }
+                  }}
+                >
+                  {isCameraOn ? <Videocam /> : <VideocamOff />}
+                </IconButton>
+
+                <IconButton 
+                  onClick={toggleScreenShare}
+                  sx={{ 
+                    backgroundColor: isScreenSharing ? 'secondary.main' : 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: isScreenSharing ? 'secondary.dark' : 'primary.dark',
+                    }
+                  }}
+                >
+                  {isScreenSharing ? <StopScreenShare /> : <ScreenShare />}
+                </IconButton>
+                
+                <IconButton 
+                  onClick={stopVideoCall}
+                  sx={{ 
+                    backgroundColor: 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'error.dark',
+                    }
+                  }}
+                >
+                  <CallEnd />
+                </IconButton>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowVideoModal(false)}>
+              Minimize
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );

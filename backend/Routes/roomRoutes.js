@@ -141,4 +141,72 @@ router.post('/initialize', async (req, res) => {
   }
 });
 
+// PUT release room by patient ID
+router.put('/release-by-patient/:patientId', async (req, res) => {
+  try {
+    const { patientId } = req.params;
+
+    // Find the patient
+    const patient = await Admit.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ success: false, error: 'Patient not found' });
+    }
+
+    // If patient has a room, release it
+    if (patient.roomId) {
+      const room = await Room.findOne({ roomId: patient.roomId });
+      if (room) {
+        room.status = 'available';
+        room.patientId = null;
+        await room.save();
+
+        res.json({ 
+          success: true, 
+          message: `Room ${patient.roomId} released successfully`,
+          room 
+        });
+      } else {
+        res.status(404).json({ success: false, error: 'Room not found' });
+      }
+    } else {
+      res.json({ success: true, message: 'Patient has no room assigned' });
+    }
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
+// PUT release room by room ID
+router.put('/release/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+
+    const room = await Room.findOne({ roomId: roomId });
+    if (!room) {
+      return res.status(404).json({ success: false, error: 'Room not found' });
+    }
+
+    // If room has a patient, update their record
+    if (room.patientId) {
+      await Admit.findByIdAndUpdate(room.patientId, { 
+        roomId: '',
+        status: 'Discharged'
+      });
+    }
+
+    // Release the room
+    room.status = 'available';
+    room.patientId = null;
+    await room.save();
+
+    res.json({ 
+      success: true, 
+      message: `Room ${roomId} released successfully`,
+      room 
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;
