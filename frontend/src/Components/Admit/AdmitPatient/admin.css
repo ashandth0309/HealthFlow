@@ -1,0 +1,398 @@
+.form_full_admit {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.admit_form_full {
+  background-color: white;
+  margin: 80px 0;
+  border-radius: 5px;
+  padding: 15px;
+}
+.from_one {
+  display: flex;
+  align-items: center;
+  height: 85vh;
+}
+.form_head_admit {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.form_group_admit {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  justify-content: space-between;
+}
+.form_input_colum {
+  margin: 5px 0 10px 0;
+  border-radius: 5px;
+  font-size: 17px;
+  width: 350px;
+  padding: 4px 10px;
+  border: 1px solid #2d30ca;
+}
+.APP_CARD {
+  background-color: #008cff;
+  border-radius: 5px;
+  margin: 30px;
+  padding: 25px;
+  width: 600px;
+}
+.form_head_subb {
+  color: rgb(0, 0, 0);
+  margin-bottom: 15px;
+  font-size: 25px;
+  text-align: center;
+}
+.submit_btn_checkbtn {
+  background-color: #2d30ca;
+  color: white;
+  padding: 8px 20px;
+  margin: 10px auto 0 auto;
+  display: flex;
+  font-size: 17px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #2d30ca;
+}
+.form_input_colum_full {
+  margin: 5px 0 10px 0;
+  border-radius: 5px;
+  font-size: 17px;
+  width: 100%;
+  padding: 4px 10px;
+  border: 1px solid #2d30ca;
+}
+.form_input_colum_update {
+  margin: 5px 0 10px 0;
+  border-radius: 5px;
+  font-size: 17px;
+  width: 270px;
+  padding: 4px 10px;
+  border: 1px solid #2d30ca;
+}
+.form_input_columal {
+  margin: 5px 0 10px 0;
+  border-radius: 5px;
+  font-size: 17px;
+  width: 565px;
+  padding: 4px 10px;
+  border: 1px solid #2d30ca;
+}
+.with_set {
+  width: 650px;
+}
+.admit_from_background {
+  width: 100%;
+  background-size: cover;
+  height: 100vh;
+  position: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/homeback.png);
+}
+/* .form_full_admit {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+} */
+.admit_from_full {
+  width: 650px;
+  margin: 0px auto;
+  padding: 25px;
+  background-color: #0059b8c2;
+  border-radius: 15px;
+}
+.form_head_admit {
+  text-align: center;
+  margin: 0 0 5px 0;
+  font-size: 30px;
+}
+.form-label {
+  font-size: 18px;
+  text-transform: capitalize;
+  font-weight: 500;
+
+  color: white;
+}
+.form-input {
+  width: 290px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 5px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.input_group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.from_para_admit {
+  text-align: center;
+  margin-bottom: 25px;
+  color: white;
+  font-size: 17px;
+}
+input:focus {
+  border: 0;
+}
+input:active {
+  border: 0;
+}
+.forminput {
+  width: 130px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.sub_date_titel {
+  padding: 0 5px;
+  color: white;
+  font-weight: bold;
+}
+.submit_btn {
+  color: #ffffff;
+  margin: 20px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 10px 20px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.form_input_service {
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.summry_label {
+  margin-bottom: 10px;
+  color: white;
+  font-size: 20px;
+}
+.check_gmail_box_admit {
+  width: 100%;
+  margin: 20px auto;
+  display: flex;
+}
+.admit_gmail_box {
+  margin: 0 auto 0px auto;
+  width: 350px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  padding: 10px;
+}
+.form_label_gmail {
+  font-weight: 500;
+  font-size: 17px;
+}
+.gmail_insert {
+  width: 100%;
+  margin: 8px 0;
+  padding: 3px 5px;
+}
+.submit_btn_gmail {
+  color: #ffffff;
+  margin: 2px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.not_found_box {
+  text-align: center;
+}
+.month_data {
+  margin: 20px auto;
+}
+.notfound {
+  width: 350px;
+  margin-top: 50px;
+}
+.nodata_pera {
+  margin-top: 5px;
+}
+.admit_table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #2d30ca;
+  margin-bottom: 25px;
+}
+.admit_table_th,
+.admit_table_td {
+  border: 1px solid #2d30ca;
+}
+.admit_table_td {
+  padding: 5px;
+}
+.table_main_admit {
+  padding: 10px 10%;
+}
+.table_container {
+  overflow-x: auto;
+  white-space: nowrap; /* Ensures the table rows don't wrap */
+}
+.main_admit_staf {
+  padding: 10px 10%;
+}
+.btn_tableset {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
+}
+.admit_table_th {
+  text-align: center;
+  text-transform: capitalize;
+  padding: 5px 8px;
+}
+.admit_deletbtn {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 17px;
+  cursor: pointer;
+  margin-left: 10px;
+  border: 1px solid #cc0307;
+}
+.admit_deletbtn2 {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid #cc0307;
+}
+.admit_update {
+  color: #ffffff;
+  text-align: center;
+  background-color: green;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid green;
+  text-decoration: none;
+}
+.admit_card_footer {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  justify-content: space-between;
+}
+.card_main_admit {
+  padding: 10px 10%;
+}
+.admit_card_container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.admit_card {
+  border: 1px solid #2d30ca;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.807);
+}
+.admit_card_item,
+.admit_card_header {
+  margin-bottom: 10px;
+}
+.admit_card_label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.card_title_admit {
+  text-align: center;
+}
+.all_box_app_admit {
+  padding: 25px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.607);
+}
+.action_set_staf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topic_admin_admit {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.search_input {
+  width: 250px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+}
+.search_btn_admit {
+  background-color: #2d30ca;
+  margin: 0 auto;
+  padding: 4px 8px;
+  align-items: center;
+  display: flex;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+.foget_check_fecht {
+  text-align: end;
+  font-size: 14px;
+  cursor: pointer;
+  color: black;
+  font-weight: 600;
+}
+/* For Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+.presImg {
+  width: 150px;
+  height: auto;
+}
+.cen {
+  text-align: center;
+  display: flex;
+  border-radius: 5px;
+  margin: 15px auto;
+  align-items: center;
+}
+.linkbtn {
+  color: white;
+  text-decoration: none;
+}

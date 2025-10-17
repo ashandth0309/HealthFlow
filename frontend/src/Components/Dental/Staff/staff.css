@@ -1,0 +1,30 @@
+* {
+  transition: 0.3s ease-in-out;
+}
+.staf_side {
+  background-color: #085bb5;
+}
+.nav_bar_itme {
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 25px;
+  padding: 7px 20px 7px 20px;
+}
+.nav_bar_itme:hover {
+  background-color: white;
+  color: #085bb5;
+  padding: 7px 20px 7px 20px;
+  border-radius: 0 30px 30px 0;
+}
+
+.nav_bar_itme_active {
+  background-color: white;
+  color: #085bb5;
+  padding: 7px 20px 7px 20px;
+  border-radius: 0 30px 30px 0;
+}
+.data_btn{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

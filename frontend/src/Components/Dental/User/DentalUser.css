@@ -1,0 +1,295 @@
+.dental_from_background {
+  width: 100%;
+  background-size: cover;
+  height: 100vh;
+  position: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/formBk.png);
+}
+/* 
+.dental_form_background_app {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  display: block;
+  position: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/formBk.png);
+} */
+
+.form_full_dental {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.appointment_from_full {
+  width: 650px;
+  margin: 0px auto;
+  padding: 25px;
+  background-color: #0059b8c2;
+  border-radius: 15px;
+}
+.form_head_dental {
+  text-align: center;
+  margin: 0 0 5px 0;
+  color: white;
+  font-size: 30px;
+}
+.form-label {
+  font-size: 18px;
+  text-transform: capitalize;
+  font-weight: 500;
+
+  color: white;
+}
+.form-input {
+  width: 290px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 5px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.input_group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.from_para_dental {
+  text-align: center;
+  margin-bottom: 25px;
+  color: white;
+  font-size: 17px;
+}
+input:focus {
+  border: 0;
+}
+input:active {
+  border: 0;
+}
+.forminput {
+  width: 130px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.sub_date_titel {
+  padding: 0 5px;
+  color: white;
+  font-weight: bold;
+}
+.submit_btn {
+  color: #ffffff;
+  margin: 20px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 10px 20px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.form_input_service {
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.summry_label {
+  margin-bottom: 10px;
+  color: white;
+  font-size: 20px;
+}
+.check_gmail_box_dental {
+  width: 100%;
+  margin: 20px auto;
+  display: flex;
+}
+.dental_gmail_box {
+  margin: 0 auto 0px auto;
+  width: 350px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  padding: 10px;
+}
+.form_label_gmail {
+  font-weight: 500;
+  font-size: 17px;
+}
+.gmail_insert {
+  width: 100%;
+  margin: 8px 0;
+  padding: 3px 5px;
+}
+.submit_btn_gmail {
+  color: #ffffff;
+  margin: 2px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.not_found_box {
+  text-align: center;
+}
+.month_data {
+  margin: 20px auto;
+}
+.notfound {
+  width: 350px;
+  margin-top: 50px;
+}
+.nodata_pera {
+  margin-top: 5px;
+}
+.dental_table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #2d30ca;
+  margin-bottom: 25px;
+}
+.dental_table_th,
+.dental_table_td {
+  border: 1px solid #2d30ca;
+}
+.dental_table_td {
+  padding: 5px;
+}
+.table_main_dental {
+  padding: 10px 10%;
+}
+.table_container {
+  overflow-x: auto;
+  white-space: nowrap; /* Ensures the table rows don't wrap */
+}
+.main_dental_staf {
+  padding: 10px 10%;
+}
+.btn_tableset {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
+}
+.dental_table_th {
+  text-align: center;
+  text-transform: capitalize;
+}
+.dental_deletbtn {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 17px;
+  cursor: pointer;
+  margin-left: 10px;
+  border: 1px solid #cc0307;
+}
+.dental_deletbtn2 {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid #cc0307;
+}
+.dental_update {
+  color: #ffffff;
+  text-align: center;
+  background-color: green;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid green;
+  text-decoration: none;
+}
+.dental_card_footer {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  justify-content: space-between;
+}
+.card_main_dental {
+  padding: 10px 10%;
+}
+.dental_card_container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.dental_card {
+  border: 1px solid #2d30ca;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.807);
+}
+.dental_card_item,
+.dental_card_header {
+  margin-bottom: 10px;
+}
+.dental_card_label {
+  font-weight: 600;
+}
+.card_title_dental {
+  text-align: center;
+}
+.all_box_app_dental {
+  padding: 25px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.607);
+}
+.action_set_staf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topic_admin_dental {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.search_input {
+  width: 250px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+}
+.search_btn {
+  background-color: #2d30ca;
+  margin-left: 10px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+.denttl_btnn {
+  background-color: #2d30ca;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}

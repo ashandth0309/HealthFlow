@@ -1,0 +1,57 @@
+.my_doc_details {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 30px;
+}
+
+.doc_details_card {
+  border: 1px solid #085bb5;
+  padding: 15px;
+  width: 330px;
+  border-radius: 3px;
+}
+.doc_img {
+  width: 100%;
+  margin: 0 auto;
+}
+.doc_card_data {
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.doctor_card_app {
+  width: 700px;
+  border: 1px solid #085bb5;
+  border-radius: 3px;
+  padding: 15px;
+  margin-bottom: 25px;
+}
+.app_doc_details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.doctor_card_app_details {
+  font-size: 17px;
+  margin-bottom: 8px;
+}
+.form_group_newdent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.newinputfrom {
+  width: 280px;
+}
+.newinputfromneww {
+  width: 280px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
