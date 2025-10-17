@@ -1,0 +1,204 @@
+.discharge-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.two-column-layout {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.left-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-column {
+  flex: 1;
+}
+
+.data_card_admit {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.patient-info-card, .discharge-summary-card {
+  border-left: 4px solid #007bff;
+}
+
+.main_topic_admit {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 10px;
+}
+
+.patient-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 180px;
+}
+
+.detail-value {
+  color: #6c757d;
+  text-align: right;
+  flex: 1;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.summary-section {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #28a745;
+}
+
+.summary-section h4 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.summary-section p, .summary-section ul {
+  color: #6c757d;
+  margin: 0;
+}
+
+.summary-section ul {
+  padding-left: 20px;
+}
+
+.summary-section li {
+  margin-bottom: 5px;
+}
+
+.form-section {
+  margin-bottom: 25px;
+}
+
+.admit_card_label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.form_input_columal {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form_input_columal:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.textarea-input {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.search_btn_admit {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.primary-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.secondary-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.secondary-btn:hover {
+  background-color: #545b62;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .two-column-layout {
+    flex-direction: column;
+  }
+  
+  .left-column, .right-column {
+    flex: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .discharge-container {
+    padding: 10px;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .data_card_admit {
+    padding: 15px;
+  }
+}

@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+* {
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+
+.dental_home_bk {
+  width: 100%;
+  background-size: cover;
+  height: 95vh;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/HomeBk.png);
+}
+.dental_home_bk_service {
+  width: 100%;
+  background-size: cover;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/bk_service.png);
+}
+.Dental_nav_bar_full {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10%;
+  z-index: 10000;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.674);
+}
+.logo_word {
+  color: #2d30ca;
+  font-size: 23px;
+}
+.logo_sub_word {
+  color: black;
+}
+.Dental_nav_right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: space-between;
+  text-transform: uppercase;
+  font-size: 13px;
+  cursor: pointer;
+}
+.nav_item_dental:hover {
+  color: #2d30ca;
+}
+.home_dental_body {
+  position: absolute;
+  top: 23%;
+  left: 10%;
+}
+.home_topic_dental {
+  color: white;
+  font-size: 110px;
+}
+.home_para_dental {
+  color: white;
+  font-size: 20px;
+}
+.btn_dental_book {
+  background-color: #2d30ca;
+  color: white;
+  margin: 25px 0;
+  border-radius: 80px;
+  padding: 8px 20px;
+  border: 1px solid #2d30ca;
+  font-size: 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.nav_active_dental {
+  color: #2d30ca;
+}
+.home_service_grid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 10px 10%;
+}
+.service_dental_card {
+  width: 300px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px;
+  background: linear-gradient(to bottom, #ffffff, #e0eeff);
+}
+
+.card_topic_dental {
+  font-size: 23px;
+  margin-bottom: 8px;
+}
+.card_topic_para {
+  margin-bottom: 8px;
+}
+.topic_data {
+  text-align: center;
+  padding: 20px 0;
+}
+
+/*faq*/
+.fq_card_main {
+  padding: 10px 10%;
+}
+.fq_card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.fq_topic {
+  font-size: 25px;
+  margin-bottom: 8px;
+}
+.fq_para {
+  font-size: 20px;
+}
+
+.lft_bn{
+  margin-left: 25px;
+}

@@ -1,0 +1,406 @@
+* {
+  transition: 0.3s ease-in-out;
+}
+.staf_side {
+  background-color: #085bb5;
+}
+.nav_bar_itme {
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-size: 25px;
+  padding: 7px 20px 7px 20px;
+}
+.appointment_from_full {
+  width: 650px;
+  margin: 0px auto;
+  padding: 25px;
+  background-color: #0059b8c2;
+  border-radius: 15px;
+}
+.form_head_app{
+  text-align: center;
+  margin: 0 0 5px 0;
+  color: white;
+  font-size: 30px;
+}
+.nav_bar_itme:hover {
+  background-color: white;
+  color: #085bb5;
+  padding: 7px 20px 7px 20px;
+  border-radius: 0 30px 30px 0;
+}
+.btnset_update {
+  margin: 9px 0 5px 0;
+}
+.nav_bar_itme_active {
+  background-color: white;
+  color: #085bb5;
+  padding: 7px 20px 7px 20px;
+  border-radius: 0 30px 30px 0;
+}
+.data_btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: space-between;
+}
+.presImg {
+  width: 150px;
+  height: auto;
+}
+.form_full_doctor {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.form_full_doctor_code {
+  margin: 25px 0;
+}
+.doctor_from_full {
+  width: 650px;
+  margin: 0px auto;
+  padding: 25px;
+  background-color: #0059b8c2;
+  border-radius: 15px;
+}
+.form_head_doctor {
+  text-align: center;
+  margin: 0 0 5px 0;
+  color: white;
+  font-size: 30px;
+}
+.form-label {
+  font-size: 18px;
+  text-transform: capitalize;
+  font-weight: 500;
+
+  color: white;
+}
+.form-input {
+  width: 290px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 5px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.input_group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.from_para_doctor {
+  text-align: center;
+  margin-bottom: 25px;
+  color: white;
+  font-size: 17px;
+}
+input:focus {
+  border: 0;
+}
+input:active {
+  border: 0;
+}
+.forminput {
+  width: 130px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.sub_date_titel {
+  padding: 0 5px;
+  color: white;
+  font-weight: bold;
+}
+.submit_btn {
+  color: #ffffff;
+  margin: 20px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 10px 20px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.form_input_service {
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.summry_label {
+  margin-bottom: 10px;
+  color: white;
+  font-size: 20px;
+}
+.check_gmail_box_doctor {
+  width: 100%;
+  margin: 20px auto;
+  display: flex;
+}
+.doctor_gmail_box {
+  margin: 0 auto 0px auto;
+  width: 350px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  padding: 10px;
+}
+.form_label_gmail {
+  font-weight: 500;
+  font-size: 17px;
+}
+.gmail_insert {
+  width: 100%;
+  margin: 8px 0;
+  padding: 3px 5px;
+}
+.submit_btn_gmail {
+  color: #ffffff;
+  margin: 2px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.not_found_box {
+  text-align: center;
+}
+.month_data {
+  margin: 20px auto;
+}
+.notfound {
+  width: 350px;
+  margin-top: 50px;
+}
+.nodata_pera {
+  margin-top: 5px;
+}
+.doctor_table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #2d30ca;
+  margin-bottom: 25px;
+}
+.doctor_table_th,
+.doctor_table_td {
+  border: 1px solid #2d30ca;
+}
+.doctor_table_td {
+  padding: 5px;
+}
+.table_main_doctor {
+  padding: 10px 10%;
+}
+.table_container {
+  overflow-x: auto;
+  white-space: nowrap; /* Ensures the table rows don't wrap */
+}
+.main_doctor_staf {
+  padding: 10px 10%;
+}
+.btn_tableset {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
+}
+.doctor_table_th {
+  text-align: center;
+  text-transform: capitalize;
+  padding: 5px;
+}
+.doctor_deletbtn {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 17px;
+  cursor: pointer;
+  margin-left: 10px;
+  border: 1px solid #cc0307;
+}
+.doctor_deletbtn2 {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid #cc0307;
+}
+.doctor_update {
+  color: #ffffff;
+  text-align: center;
+  background-color: green;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid green;
+  text-decoration: none;
+}
+.doctor_card_footer {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  justify-content: space-between;
+}
+.card_main_doctor {
+  padding: 10px 10%;
+}
+.doctor_card_container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.doctor_card {
+  border: 1px solid #2d30ca;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.807);
+}
+.doctor_card_item,
+.doctor_card_header {
+  margin-bottom: 10px;
+}
+.doctor_card_label {
+  font-weight: 600;
+}
+.card_title_doctor {
+  text-align: center;
+}
+.all_box_app_doctor {
+  padding: 25px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.607);
+}
+.action_set_staf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topic_admin_doctor {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.search_input {
+  width: 250px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+}
+.search_btn {
+  background-color: #2d30ca;
+  margin-left: 10px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+.denttl_btnn {
+  background-color: #2d30ca;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+/* For Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.actiondltbtn {
+  color: white;
+  background-color: red;
+  cursor: pointer;
+  font-size: 30px;
+  border-radius: 3px;
+  padding: 3px;
+}
+.adbtn {
+  margin: 10px 0;
+}
+.actionaddbtn {
+  color: #085bb5;
+  background-color: #ffffff;
+  cursor: pointer;
+  font-size: 30px;
+  border-radius: 3px;
+  padding: 3px;
+}
+
+.form_input_time {
+  width: 250px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.input_group_date {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.data_card_sessionn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.data_card_session_new {
+  gap: 45px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.searcch_input {
+  width: 180px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+}
+.advacne_serch_controle {
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.speci {
+  font-style: italic;
+  color: gray;
+  font-weight: 500;
+}

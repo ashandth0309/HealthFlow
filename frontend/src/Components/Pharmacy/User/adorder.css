@@ -1,0 +1,105 @@
+.disnonpart {
+  display: none;
+}
+.add_phamacybk {
+  width: 100%;
+  background-size: cover;
+  height: 100%;
+  /* position: fixed; */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/homeback.png);
+}
+.min_add_from_pharmacy {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  height: 100vh;
+}
+.card_add_from_pharmacy {
+  width: 900px;
+  margin: 0 auto;
+  padding: 25px;
+  display: flex;
+  align-items: flex-start;
+  gap: 25px;
+  justify-content: space-between;
+  border-radius: 10px;
+  background-color: #0a88fc;
+}
+.left_part_add_phramacy {
+  width: 40%;
+  color: white;
+}
+
+.lft_topic {
+  font-size: 25px;
+  margin-bottom: 15px;
+}
+.left_pharmacy_pera {
+  margin-bottom: 8px;
+  text-transform: capitalize;
+  font-size: 17px;
+}
+.pharmacy_add_from {
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+.input_groupfrom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.add_pharmacy_from_lable {
+  font-size: 17px;
+}
+.add_pharmacy_from_input {
+  width: 240px;
+  border: 1px solid #0a88fc;
+  margin: 5px 0 15px 0;
+  padding: 6px 10px;
+  border-radius: 3px;
+}
+.topic_from_pharmacy {
+  font-size: 23px;
+  color: #0a88fc;
+  margin: 10px 0 25px;
+}
+.drop_pharmacy{
+  width: 100%;
+}
+
+.suport_para {
+  color: #948ba0;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.adfrom_subbtn {
+  background-color: #0a88fc;
+  font-weight: 600;
+  font-size: 17px;
+  padding: 8px 20px;
+  border: 1px solid #0a88fc;
+  cursor: pointer;
+  border-radius: 8px;
+  color: white;
+  width: 100%;
+}
+.previe_img {
+  width: 280px;
+  height: 280px;
+  border-radius: 8px;
+
+}
+.image_preview{
+  margin-top: 41px;
+}
+.selt_pera{
+  margin-bottom: 8px;
+  font-size: 20px;
+  text-align: start;
+  font-weight: 600;
+}

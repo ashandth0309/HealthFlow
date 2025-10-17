@@ -1,0 +1,209 @@
+.main-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-title {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+/* Room Availability Styles */
+.room-availability-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.room-category {
+  margin-bottom: 30px;
+}
+
+.room-category h3 {
+  color: #34495e;
+  margin-bottom: 15px;
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.room-card {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.room-card.available:hover {
+  border-color: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+}
+
+.room-card.selected {
+  border-color: #3498db;
+  background-color: #ebf5fb;
+  box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+}
+
+.room-card.occupied {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #fdedec;
+}
+
+.room-card.cleaning {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #fef9e7;
+}
+
+.room-id {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.room-status {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Assign Room Section */
+.assign-room-section {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px solid #3498db;
+  margin-top: 20px;
+}
+
+.assignment-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.selection-display p {
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+.assign-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.assign-btn:hover:not(:disabled) {
+  background-color: #219a52;
+}
+
+.assign-btn:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+/* Patient Records Styles */
+.patient-records-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.action_set_staf {
+  margin-bottom: 20px;
+}
+
+.search_input {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  width: 300px;
+  font-size: 14px;
+}
+
+/* Table Styles */
+.table_container {
+  overflow-x: auto;
+}
+
+.admit_table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin_tbl_tr {
+  background-color: #3498db;
+  color: white;
+}
+
+.admit_table_th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: bold;
+}
+
+.admit_table_td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.admit_table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.admit_table tr.selected-patient {
+  background-color: #ebf5fb;
+  border-left: 4px solid #3498db;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .room-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .assignment-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .search_input {
+    width: 100%;
+  }
+  
+  .table_container {
+    font-size: 14px;
+  }
+  
+  .admit_table_th,
+  .admit_table_td {
+    padding: 8px 10px;
+  }
+}
