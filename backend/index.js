@@ -5,7 +5,10 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
 const app = express();
+const bodyParser = require('body-parser');
 app.use(cors({ origin: "http://localhost:5173" }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Link Routes
 const PharmacyOrderRoute = require("./Routes/PharmacyOrderRoutes.js");
@@ -32,6 +35,9 @@ app.use(
   "/uploadspharmacyorder",
   express.static(path.join(__dirname, "uploadspharmacyorder"))
 );
+app.use('/api/admit', require('./Routes/AdmitRoutes'));
+app.use('/api/appointments', require('./Routes/AppointmentRoutes'));
+app.use('/api/rooms', require('./Routes/roomRoutes'));
 app.use("/doctorAppointment", DoctorAppointmentRoute);
 app.use("/session", SessionRoute);
 app.use("/appointment", AppointmentRoute);
