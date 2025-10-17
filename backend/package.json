@@ -1,16 +1,16 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
+  "name": "healthflow-backend",
+  "version": "2.0.0",
+  "description": "HealthFlow Telemedicine Backend API",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "HealthFlow Team",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "backend": "file:",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -19,7 +19,16 @@
     "mongodb": "^6.8.0",
     "mongoose": "^8.6.1",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.15",
+    "nodemailer": "^6.9.15"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.4"
-  }
+  },
+  "keywords": [
+    "telemedicine",
+    "healthcare",
+    "prescription",
+    "mongodb",
+    "express"
+  ]
 }

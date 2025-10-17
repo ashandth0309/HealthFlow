@@ -264,7 +264,7 @@ const PrescriptionForm = () => {
       doc.setTextColor(100, 100, 100);
       doc.text("Healthcare Medical Center", 20, 35);
       doc.text("123 Medical Drive, City, State 12345", 20, 42);
-      doc.text("Phone: (555) 123-4567 | Email: info@healthcare.com", 20, 49);
+      doc.text("Phone: 0743864204 | Email: info@healthcare.com", 20, 49);
       
       // Add date
       doc.setTextColor(0, 0, 0);
