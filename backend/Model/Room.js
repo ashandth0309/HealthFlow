@@ -4,7 +4,9 @@ const roomSchema = new mongoose.Schema({
   roomId: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    trim: true,
+    uppercase: true
   },
   type: {
     type: String,
@@ -27,14 +29,20 @@ const roomSchema = new mongoose.Schema({
   },
   capacity: {
     type: Number,
-    default: 1
+    default: 1,
+    min: 1
   },
   price: {
     type: Number,
-    required: true
+    required: true,
+    min: 0
   }
 }, {
   timestamps: true
 });
+
+// Index for better query performance
+roomSchema.index({ roomId: 1 });
+roomSchema.index({ type: 1, status: 1 });
 
 module.exports = mongoose.model('Room', roomSchema);

@@ -146,42 +146,39 @@ function AdminDisplayPage() {
   };
 
   const assignRoom = async () => {
-    if (!selectedRoom) {
-      alert("Please select a room");
-      return;
-    }
+  if (!selectedRoom) {
+    alert("Please select a room");
+    return;
+  }
 
-    let patientId = selectedPatient;
+  let patientId = selectedPatient;
 
-    // If no patient is selected but we have appointment data, create a new admit record
-    if (!patientId && appointmentData) {
-      patientId = await createAdmitFromAppointment();
-      if (!patientId) {
-        alert("Failed to create patient record");
-        return;
-      }
-      setSelectedPatient(patientId);
-    }
-
+  // If no patient is selected but we have appointment data, create a new admit record
+  if (!patientId && appointmentData) {
+    patientId = await createAdmitFromAppointment();
     if (!patientId) {
-      alert("Please select a patient");
+      alert("Failed to create patient record");
       return;
     }
+    setSelectedPatient(patientId);
+  }
 
-    try {
-      // Update room status
-      await axios.put(`http://localhost:8081/api/rooms/${selectedRoom}`, {
-        status: "occupied",
-        patientId: patientId
-      });
+  if (!patientId) {
+    alert("Please select a patient");
+    return;
+  }
 
-      // Update admit record
-      await axios.put(`http://localhost:8081/api/admit/${patientId}`, {
-        roomId: selectedRoom,
-        status: "Admitted"
-      });
+  try {
+    console.log('Assigning room:', { selectedRoom, patientId });
 
-      // Update local state
+    // Use the new assign endpoint that handles both room and patient updates
+    const response = await axios.post('http://localhost:8081/api/rooms/assign', {
+      roomId: selectedRoom,
+      patientId: patientId
+    });
+
+    if (response.data.success) {
+      // Update local state for rooms
       const updatedRooms = rooms.map(room => 
         room.roomId === selectedRoom 
           ? { ...room, status: "occupied", patientId: patientId }
@@ -189,6 +186,7 @@ function AdminDisplayPage() {
       );
       setRooms(updatedRooms);
 
+      // Update local state for admit data
       const updatedAdmitData = admitData.map(admit =>
         admit._id === patientId
           ? { ...admit, roomId: selectedRoom, status: "Admitted" }
@@ -197,16 +195,49 @@ function AdminDisplayPage() {
       setAdmitData(updatedAdmitData);
       setFilteredData(updatedAdmitData);
 
+      // Update patient details if this patient is selected
+      if (selectedPatient === patientId) {
+        const updatedPatient = updatedAdmitData.find(admit => admit._id === patientId);
+        if (updatedPatient) {
+          setPatientDetails({
+            patientID: updatedPatient.admitID,
+            name: updatedPatient.fullname,
+            assignedDoctor: updatedPatient.assignedDoctor,
+            phone: updatedPatient.phone,
+            email: updatedPatient.email
+          });
+        }
+      }
+
       alert(`Room ${selectedRoom} assigned to ${patientDetails.name} successfully!`);
       
+      // Reset selections
       setSelectedRoom("");
       setSelectedPatient("");
-      
-    } catch (error) {
-      console.error("Error assigning room:", error);
-      alert("Failed to assign room. Please try again.");
+    } else {
+      alert(response.data.error || "Failed to assign room");
     }
-  };
+    
+  } catch (error) {
+    console.error("Error assigning room:", error);
+    if (error.response && error.response.data) {
+      alert(`Failed to assign room: ${error.response.data.error}`);
+    } else {
+      alert("Failed to assign room. Please check your connection and try again.");
+    }
+  }
+};
+
+// Add this for debugging
+useEffect(() => {
+  console.log('Current State:', {
+    selectedRoom,
+    selectedPatient,
+    rooms: rooms.length,
+    admitData: admitData.length,
+    patientDetails
+  });
+}, [selectedRoom, selectedPatient, rooms, admitData, patientDetails]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -317,7 +348,7 @@ function AdminDisplayPage() {
                   >
                     {getStatusText(room.status)}
                   </div>
-                  <div className="room-price">₹{room.price}/day</div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
@@ -341,7 +372,7 @@ function AdminDisplayPage() {
                   >
                     {getStatusText(room.status)}
                   </div>
-                  <div className="room-price">₹{room.price}/day</div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
@@ -365,7 +396,7 @@ function AdminDisplayPage() {
                   >
                     {getStatusText(room.status)}
                   </div>
-                  <div className="room-price">₹{room.price}/day</div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
