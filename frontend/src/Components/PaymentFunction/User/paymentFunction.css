@@ -1,0 +1,329 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+* {
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+.paymnt_background {
+  width: 100%;
+  background-size: cover;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(./img/paybk.png);
+}
+.action_btn_table {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: center;
+}
+.payment_add_from {
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+.input_groupfrom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.add_payment_from_lable {
+  font-size: 17px;
+}
+
+.form_full_payment {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.payment_from_full {
+  width: 650px;
+  margin: 0px auto;
+  padding: 25px;
+  background-color: #0059b8c2;
+  border-radius: 15px;
+}
+.form_head_payment {
+  text-align: center;
+  margin: 0 0 5px 0;
+  color: white;
+  text-transform: uppercase;
+  font-size: 30px;
+}
+.form-label {
+  font-size: 18px;
+  text-transform: capitalize;
+  font-weight: 500;
+  color: white;
+}
+.form-input {
+  width: 290px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 5px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+.invoce_data {
+  color: white;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-size: 17px;
+}
+.submit_btn {
+  color: #ffffff;
+  margin: 20px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 10px 20px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.form_input_service {
+  width: 100%;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+  margin-top: 3px;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.check_gmail_box_payment {
+  width: 100%;
+  margin: 20px auto;
+  display: flex;
+}
+.payment_gmail_box {
+  margin: 0 auto 0px auto;
+  width: 350px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  padding: 10px;
+}
+.form_label_gmail {
+  font-weight: 500;
+  font-size: 17px;
+}
+.gmail_insert {
+  width: 100%;
+  margin: 8px 0;
+  padding: 3px 5px;
+}
+.submit_btn_gmail {
+  color: #ffffff;
+  margin: 2px auto 0 auto;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 80px;
+  font-size: 17px;
+  cursor: pointer;
+  border: 1px solid #cc0307;
+}
+.not_found_box {
+  text-align: center;
+}
+.month_data {
+  margin: 20px auto;
+}
+.notfound {
+  width: 350px;
+  margin-top: 50px;
+}
+.nodata_pera {
+  margin-top: 5px;
+}
+.payment_table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #2d30ca;
+  margin-bottom: 25px;
+}
+.payment_table_th,
+.payment_table_td {
+  border: 1px solid #2d30ca;
+}
+.payment_table_td,
+.payment_table_th {
+  padding: 5px;
+}
+.table_main_payment {
+  padding: 10px 10%;
+}
+.table_container {
+  overflow-x: auto;
+  white-space: nowrap; /* Ensures the table rows don't wrap */
+}
+.main_payment_staf {
+  padding: 10px 10%;
+}
+.btn_tableset {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 5px;
+}
+.payment_table_th {
+  text-align: center;
+  text-transform: capitalize;
+}
+.payment_deletbtn {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 17px;
+  cursor: pointer;
+  margin-left: 10px;
+  border: 1px solid #cc0307;
+}
+.payment_deletbtn2 {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid #cc0307;
+}
+.payment_update {
+  color: #ffffff;
+  text-align: center;
+  background-color: green;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid green;
+  text-decoration: none;
+}
+.payment_card_footer {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+  justify-content: space-between;
+}
+.card_main_payment {
+  padding: 10px 10%;
+}
+.payment_card_container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.payment_card {
+  border: 1px solid #2d30ca;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.807);
+}
+.payment_card_item,
+.payment_card_header {
+  margin-bottom: 10px;
+}
+.payment_card_label {
+  font-weight: 600;
+}
+.card_title_payment {
+  text-align: center;
+}
+.all_box_app_payment {
+  padding: 25px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.607);
+}
+.action_set_staf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topic_admin_payment {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.search_input {
+  width: 250px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+}
+.search_btn {
+  background-color: #2d30ca;
+  margin-left: 10px;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+.denttl_btnn {
+  background-color: #2d30ca;
+  padding: 4px 8px;
+  border: 1px solid #2d30ca;
+  border-radius: 3px;
+  cursor: pointer;
+  color: white;
+}
+
+/* For Chrome, Safari, Edge, and Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+.invoice_action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 25px 0 0 0;
+}
+.dwon_btn {
+  color: #ffffff;
+  display: flex;
+  background-color: #cc0307;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  border: 1px solid #cc0307;
+}
+.paymnt_smury {
+  display: flex;
+  justify-content: space-between;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 15px 0;
+  background-color: white;
+  align-items: center;
+}
+.cennew{
+  text-align: center;
+  margin: 5px 0;
+  font-size: 25px;
+}
+
+.amount {
+  text-align: right; /* Align text to the right */
+}
