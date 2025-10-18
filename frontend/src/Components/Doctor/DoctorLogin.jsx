@@ -1,88 +1,165 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./doctor.css";
+import React, { useState } from "react";
+import {
+  Avatar,
+  Button,
+  CssBaseline,
+  TextField,
+  Grid,
+  Typography,
+  Container,
+  Card,
+  CardContent,
+  makeStyles,
+  Link,
+} from "@material-ui/core";
+import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import axios from "axios";
+import Swal from "sweetalert2";
 
-function DoctorLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    marginTop: theme.spacing(8),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  avatar: {
+    margin: theme.spacing(1),
+    backgroundColor: theme.palette.secondary.main,
+    width: theme.spacing(7),
+    height: theme.spacing(7),
+  },
+  form: {
+    width: "100%",
+    marginTop: theme.spacing(3),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
+  card: {
+    padding: theme.spacing(4),
+    textAlign: "center",
+    color: theme.palette.text.secondary,
+  },
+}));
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+const DoctorLogin = () => {
+  const classes = useStyles();
 
-    // Hardcoded credentials for TELEMEDICINE system only
-    const validUsername = "doctor";
-    const validPassword = "123";
+  const [formData, setFormData] = useState({ email: "", password: "" });
 
-    if (username === validUsername && password === validPassword) {
-      // Create doctor data object
-      const doctorData = {
-        id: 1,
-        firstName: "John",
-        lastName: "Smith",
-        email: "doctor@hospital.com",
-        specialization: "General Medicine",
-        phone: "+1234567890"
-      };
-      
-      // Store doctor data in sessionStorage
-      sessionStorage.setItem("doctor", JSON.stringify(doctorData));
-      
-      alert("Telemedicine Login Successful");
-      navigate("/DoctorDashboard"); // Use navigate instead of window.location.href
-    } else {
-      alert("Invalid telemedicine credentials");
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const { email, password } = formData;
+    try {
+      const response = await axios.post(
+        "http://localhost:8081/doctorFunction/login",
+        { email, password }
+      );
+      if (response.data.message === "Login successful") {
+        sessionStorage.setItem("doctor", JSON.stringify(response.data.data));
+        await Swal.fire({
+          title: "Success!",
+          text: "Login Successful",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+        window.location.href = "/PatientsPage";
+      } else {
+        await Swal.fire({
+          title: "Error!",
+          text: "Email or password is incorrect",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    } catch (error) {
+      console.error("Login Error: ", error);
+      await Swal.fire({
+        title: "Error!",
+        text: error.response?.data?.message || "An unexpected error occurred",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
   return (
-    <div className="telemedicine-login-container">
-      <div className="doctor-login-box">
-        <div className="login-header">
-          <h2>Telemedicine System</h2>
-          <h3 className="doctor-login-title">Doctor Login</h3>
-        </div>
-        <div className="doctor-login-form-container">
-          <form className="doctor-login-form" onSubmit={handleLogin}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="username">
-                Doctor ID:
-              </label>
-              <input
-                className="form-input"
-                type="text"
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your doctor ID"
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label" htmlFor="password">
-                Password:
-              </label>
-              <input
-                className="form-input"
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-            <button className="doctor-login-btn" type="submit">
-              Login to Telemedicine
-            </button>
-          </form>
-          <p className="system-note">
-            Access to Telemedicine Consultation System Only
-          </p>
-        </div>
+    <Container component="main" maxWidth="xs">
+      <CssBaseline />
+      <div className={classes.paper}>
+        <Avatar className={classes.avatar}>
+          <LockOutlinedIcon style={{ fontSize: 40 }} />
+        </Avatar>
+        <Typography component="h1" variant="h5">
+          Doctor Login
+        </Typography>
+        <Card className={classes.card}>
+          <CardContent>
+            <form className={classes.form} onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </Grid>
+              </Grid>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="secondary"
+                className={classes.submit}
+              >
+                Login
+              </Button>
+            </form>
+          </CardContent>
+          <CardContent>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Typography variant="body2">
+                  Don't have an account?{" "}
+                  <Link href="DoctorSignUp" variant="body2">
+                    Sign Up
+                  </Link>
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Container>
   );
-}
+};
 
 export default DoctorLogin;

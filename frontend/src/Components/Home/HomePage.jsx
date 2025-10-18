@@ -5,6 +5,9 @@ import Dental from "./img/tele.avif";
 import Pharmacy from "./img/pharmacy.png";
 import Pro from "./img/pro.png";
 import Logo from "./img/logo.jpg";
+import Lab from "./img/pharmacy.png";
+import Prescription from "./img/pharmacy.png";
+
 function HomePage() {
   return (
     <div>
@@ -34,7 +37,7 @@ function HomePage() {
               Health<span className="home_subtopic">flow</span>
             </p>
             <p className="para_home">
-              We’re here to support your journey to better health and lasting
+              We're here to support your journey to better health and lasting
               strength.
             </p>
           </div>
@@ -53,10 +56,10 @@ function HomePage() {
           </div>
           <div
             className="card_home"
-            //onClick={() => (window.location.href = "/telemedicineHome")}
+            onClick={() => (window.location.href = "/dentalHome")}
           >
             <img src={Dental} alt="" className="card_imgg" />
-            Telemedicine
+            Dental Services
           </div>
           <div
             className="card_home"
@@ -71,6 +74,20 @@ function HomePage() {
           >
             <img src={Admit} alt="" className="card_imgg" />
             Inpatient management
+          </div>
+          <div
+            className="card_home"
+            onClick={() => (window.location.href = "/myLabResults")}
+          >
+            <img src={Lab} alt="" className="card_imgg" />
+            My Lab Results
+          </div>
+          <div
+            className="card_home"
+            onClick={() => (window.location.href = "/myPrescriptions")}
+          >
+            <img src={Prescription} alt="" className="card_imgg" />
+            My Prescriptions
           </div>
         </div>
       </div>
@@ -102,7 +119,7 @@ function HomePage() {
               <div className="map">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63375.282265340706!2d79.82781946774308!3d6.8959691886387295!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25b66ba5332f1%3A0x255c8ea30781acda!2sColombo%20Health%20Centre!5e0!3m2!1sen!2slk!4v1728114686335!5m2!1sen!2slk"
-                  allowfullscreen=""
+                  allowFullScreen=""
                   loading="lazy"
                   className="map"
                 ></iframe>

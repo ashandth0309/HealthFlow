@@ -20,15 +20,14 @@ function PharmacistLogin() {
       alert("Invalid login");
     }
   };
-
   return (
     <div>
       <div className="log_box">
         <div>
-          <h3 className="login_topic">Login</h3>
+          <h3 className="login_topic">pharmacist Login</h3>
           <div className="box_container_log">
             <div>
-              <img src={loginVector} alt="login vector" className="logvector" />
+              <img src={loginVector} alt="logvectoe" className="logvector" />
             </div>
             <div className="staf_login">
               <form className="staf_login-form" onSubmit={handleLogin}>
@@ -62,7 +61,7 @@ function PharmacistLogin() {
                   className="logsub"
                   onClick={() => (window.location.href = "/pharmacistLog")}
                 >
-                  Pharmacy Manager Login
+                  pharmacy manager Login
                 </p>
                 <button className="submit_btn" type="submit">
                   Login

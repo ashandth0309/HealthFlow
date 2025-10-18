@@ -1,82 +1,85 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const admitSchema = new mongoose.Schema({
-  admitID: {
+const Schema = mongoose.Schema;
+
+const AdmitSchema = new Schema({
+  hospital: {
     type: String,
     required: true,
-    unique: true
+  },
+  date: {
+    type: String,
+    required: true,
   },
   fullname: {
     type: String,
-    required: true
+    required: true,
   },
-  nic: {
+  dob: {
     type: String,
-    required: true
+  },
+  birth: {
+    type: String,
+    required: true,
+  },
+  gender: {
+    type: String,
+    required: true,
+  },
+  price: {
+    type: String,
+    required: true,
   },
   phone: {
     type: String,
-    required: true
+    required: true,
   },
-  email: {
+  address: {
     type: String,
-    required: true
+    required: true,
   },
-  assignedDoctor: {
+  guardian: {
     type: String,
-    required: true
+    required: true,
+  },
+  relationship: {
+    type: String,
+    required: true,
+  },
+  contact: {
+    type: String,
+    required: true,
+  },
+  admitID: {
+    type: String,
+    required: true,
+  },
+  nic: {
+    type: String,
+    required: true,  
+  },
+  medications: {
+    type: String,
+    required: true, 
   },
   status: {
     type: String,
-    default: "Pending Admission"
   },
-  roomId: {
+  past: {
     type: String,
-    default: ""
+    required: true, 
   },
-  date: {
-    type: Date,
-    default: Date.now
-  },
-  appointmentData: {
-    patientName: { type: String },
-    patientAge: { type: Number },
-    patientGender: { type: String },
-    contactNumber: { type: String },
-    appointmentDate: { type: Date },
-    appointmentTime: { type: String },
-    reason: { type: String },
-    doctor: { type: String },
-    status: { type: String }
-  },
-  // Discharge fields
-  dischargePlanning: {
-    medicalSummary: { type: String, default: '' },
-    medications: { type: String, default: '' },
-    instructions: { type: String, default: '' },
-    followUp: { type: String, default: '' }
-  },
-  dischargeSummary: {
-    admissionDate: { type: Date },
-    primaryDiagnosis: { type: String, default: '' },
-    treatmentProvided: { type: String, default: '' },
-    dischargeMedications: { type: String, default: '' }
-  },
-  dischargeInstructions: {
-    activityRestrictions: { type: String, default: '' },
-    dietInstructions: { type: String, default: '' },
-    followUpAppointments: { type: String, default: '' },
-    emergencyContact: { type: String, default: '(555) 123-4567' }
-  },
-  roomReleaseStatus: {
+  symptoms: {
     type: String,
-    default: 'Not Released'
+    required: true, 
   },
-  dischargeDate: {
-    type: Date
-  }
-}, {
-  timestamps: true
+  prescription: {
+    type: String,
+    required: true, 
+  },
+  discharge: {
+    type: String,
+  },
 });
 
-module.exports = mongoose.model('Admit', admitSchema);
+module.exports = mongoose.model("Admit", AdmitSchema);

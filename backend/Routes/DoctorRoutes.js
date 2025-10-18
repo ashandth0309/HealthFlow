@@ -3,11 +3,11 @@ const router = express.Router();
 const DoctorController = require("../Controllers/DoctorController");
 
 router.get("/", DoctorController.getAllDetails);
-router.post("/register", DoctorController.registerDoctor);
-router.post("/login", DoctorController.loginDoctor);
+router.post("/", DoctorController.addData);
 router.post("/check-session", DoctorController.checkSession);
-router.get("/get/:id", DoctorController.getById);
-router.put("/update/:id", DoctorController.updateData);
-router.delete("/delete/:id", DoctorController.deleteData);
+router.get("/:id", DoctorController.getById);
+router.put("/:id", DoctorController.updateData);
+router.delete("/:id", DoctorController.deleteData);
 
+//export
 module.exports = router;

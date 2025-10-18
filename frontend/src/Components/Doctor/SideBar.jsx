@@ -1,101 +1,240 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   List,
   ListItem,
-  ListItemIcon,
-  ListItemText,
+  Button,
   Typography,
-  Box,
+  Avatar,
+  Divider,
 } from "@mui/material";
-import {
-  Dashboard,
-  VideoCall,
-  LocalHospital,
-  People,
-  History,
-  Settings,
-  ExitToApp,
-  Book, // Added Book icon for SOAP Notes
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import LogoutIcon from "@mui/icons-material/Logout";
 
-const Sidebar = () => {
-  const navigate = useNavigate();
-  const drawerWidth = 240;
+const SideBar = () => {
+  const [selectedItem, setSelectedItem] = useState("PatientsPage");
+  const doctor = JSON.parse(sessionStorage.getItem("doctor"));
 
-  const menuItems = [
-    { text: "Dashboard", icon: <Dashboard />, path: "/DoctorDashboard" },
-    { text: "Patients Records", icon: <People />, path: "/PatientsPage" },
-    { text: "Consultation", icon: <VideoCall />, path: "/TelemedicineConsultation" },
-    { text: "SOAP Notes", icon: <Book />, path: "/TelemedicineConsultation" }, // Fixed: Changed <book /> to <Book />
-    { text: "Prescriptions", icon: <LocalHospital />, path: "/Prescriptions" }, 
-    { text: "Diagnostic Orders", icon: <History />, path: "/MedicalRecords" }, // Fixed typo: "Giagnostic" to "Diagnostic"
-    { text: "Referrals", icon: <Settings />, path: "/DoctorProfilePage" },
-  ];
+  useEffect(() => {
+    const storedSelectedItem = window.sessionStorage.getItem("selectedItem");
+    if (storedSelectedItem) {
+      setSelectedItem(storedSelectedItem);
+    }
+  }, []);
+
+  const handleItemClick = (item) => {
+    setSelectedItem(item);
+    window.sessionStorage.setItem("selectedItem", item);
+    window.location.href = `/${item}`;
+  };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("doctor");
-    navigate("/DoctorLogin");
+    sessionStorage.setItem("doctor", JSON.stringify(null));
+    window.location.href = `/DoctorLogin`;
   };
 
   return (
     <Drawer
+      anchor="left"
+      variant="permanent"
       sx={{
-        width: drawerWidth,
+        width: 280,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: drawerWidth,
+          width: 280,
           boxSizing: "border-box",
-          backgroundColor: "#2c3e50",
-          color: "white",
+          backgroundColor: "#f5f7fa",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          borderRight: "none",
+          backgroundImage: "url(/path-to-your-background-image.png)",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "cover",
         },
       }}
-      variant="permanent"
-      anchor="left"
     >
-      <Box sx={{ p: 2, textAlign: "center" }}>
-        <Typography variant="h6" noWrap component="div">
-          HealthFlow
-        </Typography>
-      </Box>
-      
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => navigate(item.path)}
+      <Avatar
+        alt="D"
+        src={doctor.picture || "/default-profile.png"}
+        sx={{
+          width: 100,
+          height: 100,
+          marginBottom: "15px",
+          border: "3px solid #ecf0f1",
+        }}
+      />
+      <Typography variant="h6" sx={{ fontWeight: "bold", color: "#3c3c3c" }}>
+        Dr. {doctor.firstName} {doctor.lastName}
+      </Typography>
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        sx={{ marginBottom: "10px", color: "#9e9e9e" }}
+      >
+        {doctor.specialisation}
+      </Typography>
+      <Typography
+        variant="body2"
+        color="textSecondary"
+        sx={{ marginBottom: "20px", color: "#9e9e9e" }}
+      >
+        {doctor.locations}
+      </Typography>
+      <Divider
+        sx={{ width: "100%", marginBottom: "20px", borderColor: "#e0e0e0" }}
+      />
+
+      <List sx={{ width: "100%" }}>
+        <ListItem sx={{ padding: 0, marginBottom: "15px" }}>
+          <Button
+            fullWidth
+            variant={selectedItem === "PatientsPage" ? "contained" : "outlined"}
+            onClick={() => handleItemClick("PatientsPage")}
+            color="secondary"
             sx={{
-              "&:hover": {
-                backgroundColor: "#34495e",
-              },
+              textTransform: "none",
+              justifyContent: "center",
+              fontWeight: "bold",
+              borderRadius: "10px",
+              padding: "12px 0",
+              boxShadow:
+                selectedItem === "PatientsPage"
+                  ? "0px 4px 10px rgba(0, 0, 0, 0.1)"
+                  : "none",
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-        
-        <ListItem
-          button
-          onClick={handleLogout}
-          sx={{
-            "&:hover": {
-              backgroundColor: "#34495e",
-            },
-          }}
-        >
-          <ListItemIcon sx={{ color: "white" }}>
-            <ExitToApp />
-          </ListItemIcon>
-          <ListItemText primary="Logout" />
+            Patients
+          </Button>
+        </ListItem>
+
+        <ListItem sx={{ padding: 0, marginBottom: "15px" }}>
+          <Button
+            fullWidth
+            variant={selectedItem === "Map" ? "contained" : "outlined"}
+            onClick={() => handleItemClick("Map")}
+            color="secondary"
+            sx={{
+              textTransform: "none",
+              justifyContent: "center",
+              fontWeight: "bold",
+              borderRadius: "10px",
+              padding: "12px 0",
+              boxShadow:
+                selectedItem === "Map"
+                  ? "0px 4px 10px rgba(0, 0, 0, 0.1)"
+                  : "none",
+            }}
+          >
+            Map
+          </Button>
+        </ListItem>
+
+        <ListItem sx={{ padding: 0, marginBottom: "15px" }}>
+          <Button
+            fullWidth
+            variant={
+              selectedItem === "Prescriptions" ? "contained" : "outlined"
+            }
+            onClick={() => handleItemClick("Prescriptions")}
+            color="secondary"
+            sx={{
+              textTransform: "none",
+              justifyContent: "center",
+              fontWeight: "bold",
+              borderRadius: "10px",
+              padding: "12px 0",
+              boxShadow:
+                selectedItem === "Prescriptions"
+                  ? "0px 4px 10px rgba(0, 0, 0, 0.1)"
+                  : "none",
+            }}
+          >
+            Prescriptions
+          </Button>
+        </ListItem>
+
+        {/* <ListItem sx={{ padding: 0, marginBottom: '15px' }}>
+          <Button
+            fullWidth
+            variant={selectedItem === 'InsuranceRequests' ? 'contained' : 'outlined'}
+            onClick={() => handleItemClick('InsuranceRequests')}
+            color='secondary'
+            sx={{             
+              textTransform: 'none',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              borderRadius: '10px',
+              padding: '12px 0',
+              boxShadow: selectedItem === 'InsuranceRequests' ? '0px 4px 10px rgba(0, 0, 0, 0.1)' : 'none',
+            }}
+          >
+            Insurance Requests
+          </Button>
+        </ListItem>
+        <ListItem sx={{ padding: 0, marginBottom: '15px' }}>
+          <Button
+            fullWidth
+            variant={selectedItem === 'Scheduling' ? 'contained' : 'outlined'}
+            onClick={() => handleItemClick('Scheduling')}
+            color='secondary'
+            sx={{             
+              textTransform: 'none',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              borderRadius: '10px',
+              padding: '12px 0',
+              boxShadow: selectedItem === 'Scheduling' ? '0px 4px 10px rgba(0, 0, 0, 0.1)' : 'none',
+            }}
+          >
+            Scheduling
+          </Button>
+        </ListItem> */}
+        <ListItem sx={{ padding: 0, marginBottom: "15px" }}>
+          <Button
+            fullWidth
+            variant={
+              selectedItem === "DoctorProfilePage" ? "contained" : "outlined"
+            }
+            onClick={() => handleItemClick("DoctorProfilePage")}
+            color="secondary"
+            sx={{
+              textTransform: "none",
+              justifyContent: "center",
+              fontWeight: "bold",
+              borderRadius: "10px",
+              padding: "12px 0",
+              boxShadow:
+                selectedItem === "DoctorProfilePage"
+                  ? "0px 4px 10px rgba(0, 0, 0, 0.1)"
+                  : "none",
+            }}
+          >
+            Account Settings
+          </Button>
         </ListItem>
       </List>
+
+      <Button
+        variant="contained"
+        color="error"
+        onClick={handleLogout}
+        startIcon={<LogoutIcon />}
+        sx={{
+          marginTop: "auto",
+          width: "100%",
+          fontWeight: "bold",
+          borderRadius: "10px",
+          padding: "12px 0",
+          textTransform: "none",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        Logout
+      </Button>
     </Drawer>
   );
 };
 
-export default Sidebar;
+export default SideBar;

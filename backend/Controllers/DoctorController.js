@@ -1,204 +1,156 @@
 const DoctorModel = require("../Model/DoctorModel");
-const bcrypt = require('bcryptjs');
 
-// Get all doctors
+//Display Data
 const getAllDetails = async (req, res, next) => {
-    try {
-        const doctors = await DoctorModel.find();
-        return res.status(200).json({ doctors });
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Server error" });
-    }
+  let doctorfunction;
+  try {
+    doctorfunction = await DoctorModel.find();
+  } catch (err) {
+    console.log(err);
+  }
+  if (!doctorfunction) {
+    return res.status(404).json({ message: "Data not found" });
+  }
+  return res.status(200).json({ doctorfunction });
 };
 
-// Register new doctor
-const registerDoctor = async (req, res, next) => {
-    const {
-        firstName,
-        lastName,
-        dob,
-        specialisation,
-        sheduleTimes,
-        locations,
-        email,
-        password,
-        picture
-    } = req.body;
+//Insert Data
+const addData = async (req, res, next) => {
+  const {
+    doctorName,
+    doctorID,
+    gender,
+    gmail,
+    clinic,
+    timeSlotStart,
+    timeSlotEnd,
+    price,
+    date,
+  } = req.body;
 
-    try {
-        // Check if email already exists
-        const existingDoctor = await DoctorModel.findOne({ email });
-        if (existingDoctor) {
-            return res.status(400).json({ message: "Email is Already Used" });
-        }
+  let doctorfunction;
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newDoctor = new DoctorModel({
-            firstName,
-            lastName,
-            dob,
-            specialisation,
-            sheduleTimes,
-            locations,
-            email,
-            password: hashedPassword,
-            picture
-        });
-
-        await newDoctor.save();
-        return res.status(201).json({ 
-            message: "Doctor registered successfully",
-            doctor: newDoctor 
-        });
-
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Registration failed" });
-    }
+  try {
+    doctorfunction = new DoctorModel({
+      doctorName,
+      doctorID,
+      gender,
+      gmail,
+      clinic,
+      timeSlotStart,
+      timeSlotEnd,
+      date,
+      price,
+    });
+    await doctorfunction.save();
+  } catch (err) {
+    console.log(err);
+  }
+  if (!doctorfunction) {
+    return res.status(404).json({ message: "unable to add data" });
+  }
+  return res.status(200).json({ doctorfunction });
 };
 
-// Doctor login
-const loginDoctor = async (req, res, next) => {
-    const { email, password } = req.body;
-
-    try {
-        const doctor = await DoctorModel.findOne({ email });
-        if (!doctor) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, doctor.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        return res.status(200).json({ 
-            message: "Login successful",
-            doctor: {
-                _id: doctor._id,
-                firstName: doctor.firstName,
-                lastName: doctor.lastName,
-                email: doctor.email,
-                specialisation: doctor.specialisation,
-                locations: doctor.locations,
-                licenseNumber: doctor.licenseNumber
-            }
-        });
-
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Login failed" });
-    }
-};
-
-// Get doctor by ID
+//Get by Id
 const getById = async (req, res, next) => {
-    const id = req.params.id;
-    try {
-        const doctor = await DoctorModel.findById(id);
-        if (!doctor) {
-            return res.status(404).json({ message: "Doctor not found" });
-        }
-        return res.status(200).json(doctor);
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Server error" });
-    }
+  const id = req.params.id;
+  let doctorfunction;
+  try {
+    doctorfunction = await DoctorModel.findById(id);
+  } catch (err) {
+    console.log(err);
+  }
+  if (!doctorfunction) {
+    return res.status(404).json({ message: "Data Not Found" });
+  }
+  return res.status(200).json({ doctorfunction });
 };
 
-// Update doctor data
+//Update Details
 const updateData = async (req, res, next) => {
-    const id = req.params.id;
-    const {
-        firstName,
-        lastName,
-        dob,
-        specialisation,
-        sheduleTimes,
-        locations,
-        email
-    } = req.body;
+  const id = req.params.id;
+  const {
+    doctorName,
+    doctorID,
+    gender,
+    gmail,
+    clinic,
+    timeSlotStart,
+    timeSlotEnd,
+    date,
+    price,
+  } = req.body;
 
-    try {
-        const updatedDoctor = await DoctorModel.findByIdAndUpdate(
-            id,
-            {
-                firstName,
-                lastName,
-                dob,
-                specialisation,
-                sheduleTimes,
-                locations,
-                email
-            },
-            { new: true }
-        );
+  let doctorfunction;
 
-        if (!updatedDoctor) {
-            return res.status(404).json({ message: "Doctor not found" });
-        }
-
-        return res.status(200).json({ 
-            message: "Profile updated successfully",
-            doctor: updatedDoctor 
-        });
-
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Update failed" });
-    }
+  try {
+    doctorfunction = await DoctorModel.findByIdAndUpdate(id, {
+      doctorName: doctorName,
+      doctorID: doctorID,
+      gender: gender,
+      gmail: gmail,
+      clinic: clinic,
+      timeSlotStart: timeSlotStart,
+      timeSlotEnd: timeSlotEnd,
+      date: date,
+      price: price,
+    });
+    doctorfunction = await doctorfunction.save();
+  } catch (err) {
+    console.log(err);
+  }
+  if (!doctorfunction) {
+    return res.status(404).json({ message: "Unable to Update data" });
+  }
+  return res.status(200).json({ doctorfunction });
 };
 
-// Delete doctor
+//Delete data
 const deleteData = async (req, res, next) => {
-    const id = req.params.id;
-    try {
-        const deletedDoctor = await DoctorModel.findByIdAndDelete(id);
-        if (!deletedDoctor) {
-            return res.status(404).json({ message: "Doctor not found" });
-        }
-        return res.status(200).json({ message: "Doctor deleted successfully" });
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Delete failed" });
-    }
+  const id = req.params.id;
+
+  let doctorfunction;
+
+  try {
+    doctorfunction = await DoctorModel.findByIdAndDelete(id);
+  } catch (err) {
+    console.log(err);
+  }
+  if (!doctorfunction) {
+    return res.status(404).json({ message: "Unable to Delete Details" });
+  }
+  return res.status(200).json({ doctorfunction });
 };
 
-// Check session availability (for appointments)
 const checkSession = async (req, res, next) => {
-    const { doctorName, date, timeSlotStart, timeSlotEnd } = req.body;
+  const { doctorName, date, timeSlotStart, timeSlotEnd } = req.body;
 
-    try {
-        const existingSession = await DoctorModel.findOne({
-            doctorName,
-            date,
-            timeSlotStart,
-            timeSlotEnd,
-        });
+  let existingSession;
+  try {
+    existingSession = await DoctorModel.findOne({
+      doctorName,
+      date,
+      timeSlotStart,
+      timeSlotEnd,
+    });
+  } catch (err) {
+    console.log(err);
+  }
 
-        if (existingSession) {
-            return res.status(200).json({ 
-                exists: true, 
-                message: "Session already exists" 
-            });
-        } else {
-            return res.status(200).json({ 
-                exists: false, 
-                message: "Session is available" 
-            });
-        }
-    } catch (err) {
-        console.log(err);
-        return res.status(500).json({ message: "Server error" });
-    }
+  if (existingSession) {
+    return res
+      .status(200)
+      .json({ exists: true, message: "Session already exists" });
+  } else {
+    return res
+      .status(200)
+      .json({ exists: false, message: "Session is available" });
+  }
 };
 
 exports.getAllDetails = getAllDetails;
-exports.registerDoctor = registerDoctor;
-exports.loginDoctor = loginDoctor;
+exports.addData = addData;
 exports.getById = getById;
 exports.updateData = updateData;
 exports.deleteData = deleteData;

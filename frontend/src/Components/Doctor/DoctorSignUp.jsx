@@ -1,241 +1,381 @@
 import React, { useState } from "react";
 import {
-  Container,
   Avatar,
-  Typography,
-  TextField,
   Button,
+  CssBaseline,
+  TextField,
   Grid,
-  Box,
+  Typography,
+  Container,
+  Card,
+  CardContent,
+  makeStyles,
   Link,
   Input,
-  FormControl,
-  InputLabel,
-  FormHelperText,
-  CircularProgress
-} from "@mui/material";
+} from "@material-ui/core";
 import axios from "axios";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { useNavigate } from "react-router-dom";
+import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
+import Swal from "sweetalert2";
 
-// Using sx prop for styling (modern MUI approach)
+const useStyles = makeStyles((theme) => ({
+  paper: {
+    marginTop: theme.spacing(3),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  avatar: {
+    margin: theme.spacing(1),
+    backgroundColor: theme.palette.secondary.main,
+    width: theme.spacing(7),
+    height: theme.spacing(7),
+  },
+  form: {
+    width: "100%",
+    marginTop: theme.spacing(3),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
+  card: {
+    padding: theme.spacing(4),
+    textAlign: "center",
+    color: theme.palette.text.secondary,
+  },
+}));
+
 const DoctorSignUp = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    specialization: "",
-    phone: "",
-    licenseNumber: "",
-    hospital: ""
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const classes = useStyles();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dob, setDob] = useState("");
+  const [specialisation, setSpecialisation] = useState("");
+  const [sheduleTimes, setSheduleTimes] = useState("");
+  const [locations, setLocations] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rePassword, setRePassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [rePasswordError, setRePasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [imageSelected, setImageSelected] = useState(null);
+  const [picture, setPicture] = useState();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateForm()) return;
+
+    const formData = new FormData();
+    formData.append("file", imageSelected);
+    formData.append("upload_preset", "ml_default");
+    await axios.post(
+      "https://api.cloudinary.com/v1_1/dnomnqmne/image/upload",
+      formData
+    );
+    const doctor = {
+      firstName,
+      lastName,
+      dob,
+      specialisation,
+      sheduleTimes,
+      locations,
+      email,
+      password,
+      picture,
+    };
 
     try {
-      setLoading(true);
-      setError("");
-      
-      const response = await axios.post("http://localhost:8081/doctor/signup", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        specialization: formData.specialization,
-        phone: formData.phone,
-        licenseNumber: formData.licenseNumber,
-        hospital: formData.hospital
-      });
-
-      if (response.status === 201) {
-        alert("Doctor registered successfully!");
-        navigate("/doctor-login");
+      const response = await axios.post(
+        `http://localhost:8081/doctorFunction/register`,
+        doctor
+      );
+      if (response.data.message !== "Email is Already Used") {
+        Swal.fire({
+          title: "Success!",
+          text: response.data.message,
+          icon: "success",
+          confirmButtonText: "OK",
+        }).then((okay) => {
+          if (okay) {
+            window.location.href = "/DoctorLogin";
+          }
+        });
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: "Email Already Taken",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      Swal.fire({
+        title: "Error!",
+        text: "Registration Not Successful",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
+  };
+
+  const validateForm = () => {
+    return (
+      validateFirstName() &&
+      validateLastName() &&
+      validateEmail() &&
+      validatePassword() &&
+      validateRePassword()
+    );
+  };
+
+  const validateFirstName = () => {
+    const nameRegex = /^[A-Za-z]+$/;
+    if (!nameRegex.test(firstName)) {
+      setFirstNameError("First Name must contain only letters");
+      return false;
+    }
+    setFirstNameError("");
+    return true;
+  };
+
+  const validateLastName = () => {
+    const nameRegex = /^[A-Za-z]+$/;
+    if (!nameRegex.test(lastName)) {
+      setLastNameError("Last Name must contain only letters");
+      return false;
+    }
+    setLastNameError("");
+    return true;
+  };
+
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailError("Invalid email address");
+      return false;
+    }
+    setEmailError("");
+    return true;
+  };
+
+  const validatePassword = () => {
+    if (password.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return false;
+    }
+    if (!/\d/.test(password)) {
+      setPasswordError("Password must contain at least one digit");
+      return false;
+    }
+    if (!/[a-zA-Z]/.test(password)) {
+      setPasswordError("Password must contain at least one letter");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
+  const validateRePassword = () => {
+    if (password !== rePassword) {
+      setRePasswordError("Passwords do not match");
+      return false;
+    }
+    setRePasswordError("");
+    return true;
+  };
+
+  const handleImageChange = (event) => {
+    setImageSelected(event.target.files[0]);
+    setPicture(
+      "https://res.cloudinary.com/dnomnqmne/image/upload/v1630743483/" +
+        event.target.files[0].name
+    );
   };
 
   return (
-    <Container 
-      component="main" 
-      maxWidth="xs"
-      sx={{
-        marginTop: 8,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-        <LockOutlinedIcon />
-      </Avatar>
-      <Typography component="h1" variant="h5">
-        Doctor Sign Up
-      </Typography>
-
-      {error && (
-        <Typography color="error" variant="body2" sx={{ mt: 2 }}>
-          {error}
+    <Container component="main" maxWidth="xs">
+      <CssBaseline />
+      <div className={classes.paper}>
+        <Avatar className={classes.avatar}>
+          <LockOutlinedIcon style={{ fontSize: 40 }} />
+        </Avatar>
+        <br />
+        <Typography component="h1" variant="h5">
+          Doctor Sign Up
         </Typography>
-      )}
-
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              autoComplete="given-name"
-              name="firstName"
-              required
-              fullWidth
-              id="firstName"
-              label="First Name"
-              autoFocus
-              value={formData.firstName}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              id="lastName"
-              label="Last Name"
-              name="lastName"
-              autoComplete="family-name"
-              value={formData.lastName}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              id="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="specialization"
-              label="Specialization"
-              id="specialization"
-              value={formData.specialization}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="phone"
-              label="Phone Number"
-              id="phone"
-              autoComplete="tel"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="licenseNumber"
-              label="Medical License Number"
-              id="licenseNumber"
-              value={formData.licenseNumber}
-              onChange={handleChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="hospital"
-              label="Hospital/Clinic"
-              id="hospital"
-              value={formData.hospital}
-              onChange={handleChange}
-            />
-          </Grid>
-        </Grid>
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={24} /> : "Sign Up"}
-        </Button>
-        <Grid container justifyContent="flex-end">
-          <Grid item>
-            <Link 
-              href="/doctor-login" 
+        <br />
+        <Card className={classes.card}>
+          <CardContent>
+            <form className={classes.form} onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="firstName"
+                    label="First Name"
+                    name="firstName"
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    error={!!firstNameError}
+                    helperText={firstNameError}
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="lastName"
+                    label="Last Name"
+                    name="lastName"
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    error={!!lastNameError}
+                    helperText={lastNameError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="dob"
+                    label="Date of Birth"
+                    name="dob"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="specialisation"
+                    label="Specialisation"
+                    name="specialisation"
+                    autoComplete="specialisation"
+                    value={specialisation}
+                    onChange={(e) => setSpecialisation(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="sheduleTimes"
+                    label="Schedule Times"
+                    name="sheduleTimes"
+                    autoComplete="sheduleTimes"
+                    type="time"
+                    value={sheduleTimes}
+                    onChange={(e) => setSheduleTimes(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="locations"
+                    label="Locations"
+                    name="locations"
+                    autoComplete="locations"
+                    value={locations}
+                    onChange={(e) => setLocations(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    error={!!emailError}
+                    helperText={emailError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    error={!!passwordError}
+                    helperText={passwordError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    name="rePassword"
+                    label="Re-enter Password"
+                    type="password"
+                    id="rePassword"
+                    autoComplete="new-password"
+                    value={rePassword}
+                    onChange={(e) => setRePassword(e.target.value)}
+                    error={!!rePasswordError}
+                    helperText={rePasswordError}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ marginTop: "1rem" }}
+                    required
+                  />
+                </Grid>
+              </Grid>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="secondary"
+                className={classes.submit}
+              >
+                Sign Up
+              </Button>
+            </form>
+            <Typography
               variant="body2"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate("/doctor-login");
-              }}
+              color="text.secondary"
+              align="center"
+              mt={5}
             >
-              Already have an account? Sign in
-            </Link>
-          </Grid>
-        </Grid>
-      </Box>
+              {"Already have an account? "}
+              <Link href="DoctorLogin" variant="body2">
+                Sign In
+              </Link>
+            </Typography>
+          </CardContent>
+        </Card>
+      </div>
     </Container>
   );
 };

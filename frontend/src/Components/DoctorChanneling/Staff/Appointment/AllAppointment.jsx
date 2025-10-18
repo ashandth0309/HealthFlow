@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import NotFound from "./img/nofound.png";
 
 const URL = "http://localhost:8081/doctorAppointment";
@@ -11,9 +11,8 @@ const URL = "http://localhost:8081/doctorAppointment";
 const fetchHandler = async () => {
   return await axios.get(URL).then((res) => res.data);
 };
-
 function AllAppointment() {
-  const navigate = useNavigate();
+  //fetch data
   const [dappoiment, setDAppoiment] = useState([]);
 
   useEffect(() => {
@@ -34,27 +33,6 @@ function AllAppointment() {
         console.error("Error deleting details:", error);
       }
     }
-  };
-
-  /* Navigate to Room Assignment with selected appointment */
-  const handleAssignRoom = (appointment) => {
-    // Store appointment data to pass to room assignment page
-    const appointmentData = {
-      appointmentId: appointment._id,
-      doctorAppoimentID: appointment.doctorAppoimentID,
-      fullname: appointment.fullname,
-      phone: appointment.phone,
-      gmail: appointment.gmail,
-      doctorname: appointment.doctorname,
-      location: appointment.location,
-      date: appointment.date,
-      session: appointment.session,
-      price: appointment.price,
-      timeSlot: appointment.timeSlot
-    };
-
-    // Navigate to AdminDisplayPage with state - CORRECTED PATH
-    navigate('/adminAdmit', { state: { appointmentData } });
   };
 
   /* Search Function */
@@ -168,12 +146,7 @@ function AllAppointment() {
 
                 <tbody>
                   {dappoiment.map((item, index) => (
-                    <tr 
-                      className="appointment-row" 
-                      key={index}
-                      onClick={() => handleAssignRoom(item)}
-                      style={{ cursor: 'pointer' }}
-                    >
+                    <tr className="" key={index}>
                       <td className="doctor_table_td">
                         {item.doctorAppoimentID}
                       </td>
@@ -190,15 +163,11 @@ function AllAppointment() {
                         <Link
                           className="doctor_update"
                           to={`/updateAppoimentDoc/${item._id}`}
-                          onClick={(e) => e.stopPropagation()}
                         >
                           Update
                         </Link>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteHandler(item._id);
-                          }}
+                          onClick={() => deleteHandler(item._id)}
                           className="doctor_deletbtn2"
                         >
                           Delete

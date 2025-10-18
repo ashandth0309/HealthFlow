@@ -3,6 +3,7 @@ import Chanal from "./img/chanal.png";
 import Tele from "./img/Tele.avif";
 import Pharmacy from "./img/pharmacy.png";
 import Payment from "./img/payment.jpg";
+import Lab from "./img/lab.png";
 function AdminDash() {
   return (
     <div>
@@ -18,7 +19,7 @@ function AdminDash() {
           </div>
           <div
             className="card_home"
-            onClick={() => (window.location.href = "/DoctorLogin")}
+            //onClick={() => (window.location.href = "/teleStafLog")}
           >
             <img src={Tele} alt="" className="card_imgg" />
             telemedicine management
@@ -37,13 +38,13 @@ function AdminDash() {
             <img src={Admit} alt="" className="card_imgg" />
             Admit management
           </div>
-          {/*<div
+          <div
             className="card_home"
-            onClick={() => (window.location.href = "/DoctorLogin")}
+            onClick={() => (window.location.href = "/labOrders")}
           >
-            <img src={Doctor} alt="" className="card_imgg" />
-            doctor management
-          </div>*/}
+            <img src={Lab} alt="" className="card_imgg" />
+            Lab Management
+          </div>
           <div
             className="card_home"
             onClick={() => (window.location.href = "/paymentLogin")}
