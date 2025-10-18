@@ -1,104 +1,142 @@
 const Room = require('../Model/Room');
 const Admit = require('../Model/Admit');
 
-// GET all rooms
-const getAllRooms = async (req, res) => {
-  try {
-    const rooms = await Room.find().populate('patientId');
-    res.json({ success: true, rooms });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+// Single Responsibility Principle - Each class/function has one responsibility
+
+// Room Repository - handles all data operations
+class RoomRepository {
+  async findAll() {
+    return await Room.find().populate('patientId');
   }
-};
 
-// GET rooms by type
-const getRoomsByType = async (req, res) => {
-  try {
-    const rooms = await Room.find({ type: req.params.type }).populate('patientId');
-    res.json({ success: true, rooms });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+  async findByType(type) {
+    return await Room.find({ type }).populate('patientId');
   }
-};
 
-// POST create new room
-const createRoom = async (req, res) => {
-  try {
-    const room = new Room(req.body);
-    await room.save();
-    res.status(201).json({ success: true, room });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
+  async findByRoomId(roomId) {
+    return await Room.findOne({ roomId });
   }
-};
 
-// PUT update room status
-const updateRoom = async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { status, patientId } = req.body;
+  async create(roomData) {
+    const room = new Room(roomData);
+    return await room.save();
+  }
 
-    const room = await Room.findOneAndUpdate(
-      { roomId: roomId },
-      { status, patientId },
+  async update(roomId, updateData) {
+    return await Room.findOneAndUpdate(
+      { roomId },
+      updateData,
       { new: true, runValidators: true }
     );
-
-    if (!room) {
-      return res.status(404).json({ success: false, error: 'Room not found' });
-    }
-
-    res.json({ success: true, room });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
   }
-};
 
-// POST assign room to patient
-const assignRoom = async (req, res) => {
-  try {
-    const { roomId, patientId } = req.body;
+  async deleteAll() {
+    return await Room.deleteMany({});
+  }
 
-    // Check if room exists and is available
-    const room = await Room.findOne({ roomId: roomId });
-    if (!room) {
-      return res.status(404).json({ success: false, error: 'Room not found' });
-    }
+  async insertMany(rooms) {
+    return await Room.insertMany(rooms);
+  }
+}
 
-    if (room.status !== 'available') {
-      return res.status(400).json({ success: false, error: 'Room is not available' });
-    }
+// Patient Repository - handles patient data operations
+class PatientRepository {
+  async findById(patientId) {
+    return await Admit.findById(patientId);
+  }
 
-    // Check if patient exists
-    const patient = await Admit.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ success: false, error: 'Patient not found' });
-    }
+  async update(patientId, updateData) {
+    return await Admit.findByIdAndUpdate(patientId, updateData);
+  }
+}
 
-    // Update room status
-    room.status = 'occupied';
-    room.patientId = patientId;
-    await room.save();
+// Open/Closed Principle - Open for extension, closed for modification
 
-    // Update patient record
-    patient.roomId = roomId;
-    patient.status = 'Admitted';
-    await patient.save();
+// Room Service - Business logic that can be extended without modifying existing code
+class RoomService {
+  constructor(roomRepository, patientRepository) {
+    this.roomRepository = roomRepository;
+    this.patientRepository = patientRepository;
+  }
 
-    res.json({ 
-      success: true, 
-      message: `Room ${roomId} assigned to ${patient.fullname} successfully`,
-      room,
-      patient 
+  async getAllRooms() {
+    return await this.roomRepository.findAll();
+  }
+
+  async getRoomsByType(type) {
+    return await this.roomRepository.findByType(type);
+  }
+
+  async createRoom(roomData) {
+    return await this.roomRepository.create(roomData);
+  }
+
+  async updateRoomStatus(roomId, status, patientId) {
+    return await this.roomRepository.update(roomId, { status, patientId });
+  }
+
+  async assignRoomToPatient(roomId, patientId) {
+    const room = await this.roomRepository.findByRoomId(roomId);
+    if (!room) throw new Error('Room not found');
+    if (room.status !== 'available') throw new Error('Room is not available');
+
+    const patient = await this.patientRepository.findById(patientId);
+    if (!patient) throw new Error('Patient not found');
+
+    // Update room
+    await this.roomRepository.update(roomId, {
+      status: 'occupied',
+      patientId
     });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
-  }
-};
 
-// Initialize sample rooms
-const initializeRooms = async (req, res) => {
-  try {
+    // Update patient
+    await this.patientRepository.update(patientId, {
+      roomId,
+      status: 'Admitted'
+    });
+
+    return { room, patient };
+  }
+
+  async releaseRoomByPatientId(patientId) {
+    const patient = await this.patientRepository.findById(patientId);
+    if (!patient) throw new Error('Patient not found');
+
+    if (!patient.roomId) {
+      return { message: 'Patient has no room assigned' };
+    }
+
+    const room = await this.roomRepository.findByRoomId(patient.roomId);
+    if (!room) throw new Error('Room not found');
+
+    await this.roomRepository.update(patient.roomId, {
+      status: 'available',
+      patientId: null
+    });
+
+    return { room };
+  }
+
+  async releaseRoomByRoomId(roomId) {
+    const room = await this.roomRepository.findByRoomId(roomId);
+    if (!room) throw new Error('Room not found');
+
+    if (room.patientId) {
+      await this.patientRepository.update(room.patientId, {
+        roomId: '',
+        status: 'Discharged'
+      });
+    }
+
+    await this.roomRepository.update(roomId, {
+      status: 'available',
+      patientId: null
+    });
+
+    return { room };
+  }
+
+  async initializeSampleRooms() {
     const sampleRooms = [
       // Ward Rooms
       { roomId: 'W-101', type: 'ward', status: 'available', floor: '1', capacity: 4, price: 1000 },
@@ -130,90 +168,152 @@ const initializeRooms = async (req, res) => {
       { roomId: 'I-305', type: 'icu', status: 'available', floor: '3', capacity: 1, price: 10000 }
     ];
 
-    await Room.deleteMany({});
-    await Room.insertMany(sampleRooms);
+    await this.roomRepository.deleteAll();
+    await this.roomRepository.insertMany(sampleRooms);
 
-    res.json({ success: true, message: 'Sample rooms initialized successfully', rooms: sampleRooms });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return sampleRooms;
   }
-};
+}
 
-// PUT release room by patient ID
-const releaseRoomByPatient = async (req, res) => {
-  try {
-    const { patientId } = req.params;
+// Liskov Substitution Principle - Subtypes should be substitutable for their base types
 
-    // Find the patient
-    const patient = await Admit.findById(patientId);
-    if (!patient) {
-      return res.status(404).json({ success: false, error: 'Patient not found' });
+// Response Handler - Consistent response format
+class ResponseHandler {
+  static success(data, message = '') {
+    return { success: true, ...data, message };
+  }
+
+  static error(message, statusCode = 500) {
+    return { success: false, error: message };
+  }
+}
+
+// Interface Segregation Principle - Client-specific interfaces
+
+// Room Controller Interface
+class RoomController {
+  constructor(roomService) {
+    this.roomService = roomService;
+  }
+
+  async getAllRooms(req, res) {
+    try {
+      const rooms = await this.roomService.getAllRooms();
+      res.json(ResponseHandler.success({ rooms }));
+    } catch (error) {
+      res.status(500).json(ResponseHandler.error(error.message));
     }
+  }
 
-    // If patient has a room, release it
-    if (patient.roomId) {
-      const room = await Room.findOne({ roomId: patient.roomId });
-      if (room) {
-        room.status = 'available';
-        room.patientId = null;
-        await room.save();
+  async getRoomsByType(req, res) {
+    try {
+      const rooms = await this.roomService.getRoomsByType(req.params.type);
+      res.json(ResponseHandler.success({ rooms }));
+    } catch (error) {
+      res.status(500).json(ResponseHandler.error(error.message));
+    }
+  }
 
-        res.json({ 
-          success: true, 
-          message: `Room ${patient.roomId} released successfully`,
-          room 
-        });
-      } else {
-        res.status(404).json({ success: false, error: 'Room not found' });
+  async createRoom(req, res) {
+    try {
+      const room = await this.roomService.createRoom(req.body);
+      res.status(201).json(ResponseHandler.success({ room }));
+    } catch (error) {
+      res.status(400).json(ResponseHandler.error(error.message));
+    }
+  }
+
+  async updateRoom(req, res) {
+    try {
+      const { roomId } = req.params;
+      const { status, patientId } = req.body;
+
+      const room = await this.roomService.updateRoomStatus(roomId, status, patientId);
+      if (!room) {
+        return res.status(404).json(ResponseHandler.error('Room not found'));
       }
-    } else {
-      res.json({ success: true, message: 'Patient has no room assigned' });
+
+      res.json(ResponseHandler.success({ room }));
+    } catch (error) {
+      res.status(400).json(ResponseHandler.error(error.message));
     }
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
   }
-};
 
-// PUT release room by room ID
-const releaseRoom = async (req, res) => {
-  try {
-    const { roomId } = req.params;
+  async assignRoom(req, res) {
+    try {
+      const { roomId, patientId } = req.body;
+      const { room, patient } = await this.roomService.assignRoomToPatient(roomId, patientId);
 
-    const room = await Room.findOne({ roomId: roomId });
-    if (!room) {
-      return res.status(404).json({ success: false, error: 'Room not found' });
+      res.json(ResponseHandler.success(
+        { room, patient },
+        `Room ${roomId} assigned to ${patient.fullname} successfully`
+      ));
+    } catch (error) {
+      res.status(400).json(ResponseHandler.error(error.message));
     }
-
-    // If room has a patient, update their record
-    if (room.patientId) {
-      await Admit.findByIdAndUpdate(room.patientId, { 
-        roomId: '',
-        status: 'Discharged'
-      });
-    }
-
-    // Release the room
-    room.status = 'available';
-    room.patientId = null;
-    await room.save();
-
-    res.json({ 
-      success: true, 
-      message: `Room ${roomId} released successfully`,
-      room 
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, error: error.message });
   }
-};
 
+  async initializeRooms(req, res) {
+    try {
+      const rooms = await this.roomService.initializeSampleRooms();
+      res.json(ResponseHandler.success(
+        { rooms },
+        'Sample rooms initialized successfully'
+      ));
+    } catch (error) {
+      res.status(500).json(ResponseHandler.error(error.message));
+    }
+  }
+
+  async releaseRoomByPatient(req, res) {
+    try {
+      const { patientId } = req.params;
+      const result = await this.roomService.releaseRoomByPatientId(patientId);
+
+      if (result.message) {
+        res.json(ResponseHandler.success({}, result.message));
+      } else {
+        res.json(ResponseHandler.success(
+          { room: result.room },
+          `Room ${result.room.roomId} released successfully`
+        ));
+      }
+    } catch (error) {
+      res.status(400).json(ResponseHandler.error(error.message));
+    }
+  }
+
+  async releaseRoom(req, res) {
+    try {
+      const { roomId } = req.params;
+      const { room } = await this.roomService.releaseRoomByRoomId(roomId);
+
+      res.json(ResponseHandler.success(
+        { room },
+        `Room ${roomId} released successfully`
+      ));
+    } catch (error) {
+      res.status(400).json(ResponseHandler.error(error.message));
+    }
+  }
+}
+
+// Dependency Inversion Principle - Depend on abstractions, not concretions
+
+// Dependency Injection Setup
+const roomRepository = new RoomRepository();
+const patientRepository = new PatientRepository();
+const roomService = new RoomService(roomRepository, patientRepository);
+const roomController = new RoomController(roomService);
+
+// Export the controller instance
 module.exports = {
-  getAllRooms,
-  getRoomsByType,
-  createRoom,
-  updateRoom,
-  assignRoom,
-  initializeRooms,
-  releaseRoomByPatient,
-  releaseRoom
+  getAllRooms: (req, res) => roomController.getAllRooms(req, res),
+  getRoomsByType: (req, res) => roomController.getRoomsByType(req, res),
+  createRoom: (req, res) => roomController.createRoom(req, res),
+  updateRoom: (req, res) => roomController.updateRoom(req, res),
+  assignRoom: (req, res) => roomController.assignRoom(req, res),
+  initializeRooms: (req, res) => roomController.initializeRooms(req, res),
+  releaseRoomByPatient: (req, res) => roomController.releaseRoomByPatient(req, res),
+  releaseRoom: (req, res) => roomController.releaseRoom(req, res)
 };
