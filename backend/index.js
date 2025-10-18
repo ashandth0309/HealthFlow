@@ -58,6 +58,8 @@ app.use("/uploadsIMG", express.static(path.join(__dirname, "uploadsIMG")));
 app.use("/paymentFunction", PaymentFunctionRoute);
 app.use("/doctorFunction", DoctorFunctionRoute);
 app.use("/prescriptions", PrescriptionsFunctionRoute);
+const roomRoutes = require('./Routes/room');
+app.use('/api/rooms', roomRoutes); // or your current base path
 
 const PORT = process.env.PORT || 8081;
 
