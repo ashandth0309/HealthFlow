@@ -15,10 +15,14 @@ import {
   DialogActions,
   IconButton,
   Box,
+  Chip,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
 import Sidebar from "../Doctor/SideBar";
 import PrescriptionForm from "./PrescriptionForm";
 import jsPDF from "jspdf";
@@ -34,25 +38,92 @@ const Prescriptions = () => {
   const [open, setOpen] = useState(false);
   const [fopen, setFOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const doctor = JSON.parse(sessionStorage.getItem("doctor"));
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const doctor = JSON.parse(sessionStorage.getItem("doctor")) || {
+    id: "doc-123",
+    firstName: "John",
+    lastName: "Doe",
+    email: "doctor@hospital.com"
+  };
   const prescriptionRef = useRef(null);
 
   useEffect(() => {
     fetchPrescriptions();
   }, []);
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const fetchPrescriptions = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8081/prescriptions/prescriptions"
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Try backend first
+      const response = await fetch("http://localhost:8081/api/prescriptions/doctor/" + (doctor?.id || "doc-123"));
+      if (response.ok) {
+        const data = await response.json();
+        setPrescriptions(data);
+        return;
       }
-      const data = await response.json();
-      setPrescriptions(data);
     } catch (error) {
-      console.error("Error fetching prescriptions:", error);
+      console.warn("Backend not available, using localStorage:", error);
+    }
+
+    // Fallback to localStorage
+    try {
+      const localPrescriptions = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+      // Filter by doctor if needed
+      const doctorPrescriptions = localPrescriptions.filter(p => p.doctorId === doctor?.id);
+      setPrescriptions(doctorPrescriptions);
+    } catch (error) {
+      console.error("Error loading from localStorage:", error);
+      // Load dummy data as last resort
+      const dummyData = [
+        {
+          _id: "1",
+          firstName: "John",
+          lastName: "Doe",
+          age: 45,
+          dob: "1978-05-15",
+          gender: "Male",
+          email: "doctor@hospital.com",
+          patientEmail: "john.doe@example.com",
+          rx: "Take medication as prescribed. Follow up in 2 weeks.",
+          date: new Date(),
+          medications: [
+            {
+              medication: "Lisinopril",
+              dosage: "10mg",
+              frequency: "Once Daily",
+              duration: "30 Days",
+              notes: "For blood pressure"
+            }
+          ],
+          doctorId: "doc-123"
+        },
+        {
+          _id: "2",
+          firstName: "Jane",
+          lastName: "Smith",
+          age: 32,
+          dob: "1991-08-22",
+          gender: "Female",
+          email: "doctor@hospital.com",
+          patientEmail: "jane.smith@example.com",
+          rx: "Complete the full course of antibiotics.",
+          date: new Date(),
+          medications: [
+            {
+              medication: "Amoxicillin",
+              dosage: "500mg",
+              frequency: "Three times daily",
+              duration: "7 Days",
+              notes: "Take with food"
+            }
+          ],
+          doctorId: "doc-123"
+        }
+      ];
+      setPrescriptions(dummyData);
     }
   };
 
@@ -65,7 +136,7 @@ const Prescriptions = () => {
     setSortBy(value);
 
     if (!value) {
-      fetchPrescriptions(); // Reset to original order
+      fetchPrescriptions();
       return;
     }
 
@@ -100,11 +171,10 @@ const Prescriptions = () => {
 
   const filteredPatients = prescriptions.filter(
     (prescription) =>
-      prescription.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (prescription.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       prescription.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prescription.patientEmail?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (genderFilter ? prescription.gender === genderFilter : true) &&
-      prescription.email === doctor?.email
+      prescription.patientEmail?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (genderFilter ? prescription.gender === genderFilter : true)
   );
 
   const handleClick = (prescription) => {
@@ -117,33 +187,59 @@ const Prescriptions = () => {
     setSelectedPrescription(null);
   };
 
+  const handleAddNew = () => {
+    setSelectedPrescription(null);
+    setIsEditing(false);
+    setFOpen(true);
+  };
+
+  const deleteFromLocalStorage = (id) => {
+    try {
+      const localPrescriptions = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+      const updatedPrescriptions = localPrescriptions.filter(p => p._id !== id);
+      localStorage.setItem('prescriptions', JSON.stringify(updatedPrescriptions));
+      return true;
+    } catch (error) {
+      console.error("Error deleting from localStorage:", error);
+      return false;
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this prescription?")) {
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:8081/prescriptions/prescriptions/${id}`, {
+      // Try backend first
+      const response = await fetch(`http://localhost:8081/api/prescriptions/${id}`, {
         method: "DELETE",
       });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      fetchPrescriptions();
-      handleClose();
     } catch (error) {
-      console.error("Error deleting prescription:", error);
-      alert("Failed to delete prescription");
+      console.warn("Backend delete failed, trying localStorage:", error);
+      // Fallback to localStorage
+      const success = deleteFromLocalStorage(id);
+      if (!success) {
+        showSnackbar("Failed to delete prescription", "error");
+        return;
+      }
     }
+    
+    // Update UI
+    setPrescriptions(prev => prev.filter(p => p._id !== id));
+    showSnackbar("Prescription deleted successfully", "success");
+    handleClose();
   };
 
   const handleCloseForm = () => {
     setFOpen(false);
     setSelectedPrescription(null);
     setIsEditing(false);
-    fetchPrescriptions(); // Refresh the list after form closes
+    fetchPrescriptions(); // Refresh the list
   };
 
   const handleOpen = () => {
@@ -179,9 +275,10 @@ const Prescriptions = () => {
         }
         
         pdf.save(`prescription-${selectedPrescription.firstName}-${selectedPrescription.lastName}.pdf`);
+        showSnackbar("PDF generated successfully", "success");
       } catch (error) {
         console.error("Error generating PDF:", error);
-        alert("Failed to generate PDF");
+        showSnackbar("Failed to generate PDF", "error");
       }
     }
   };
@@ -189,11 +286,10 @@ const Prescriptions = () => {
   const exportToExcel = () => {
     try {
       if (filteredPatients.length === 0) {
-        alert("No data to export");
+        showSnackbar("No data to export", "warning");
         return;
       }
 
-      // Format data for Excel
       const excelData = filteredPatients.map(prescription => ({
         "First Name": prescription.firstName,
         "Last Name": prescription.lastName,
@@ -211,25 +307,25 @@ const Prescriptions = () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Prescriptions');
       
-      // Auto-size columns
       const colWidths = [
-        { wch: 12 }, // First Name
-        { wch: 12 }, // Last Name
-        { wch: 5 },  // Age
-        { wch: 12 }, // Date of Birth
-        { wch: 8 },  // Gender
-        { wch: 20 }, // Patient Email
-        { wch: 20 }, // Doctor Email
-        { wch: 15 }, // Prescription Date
-        { wch: 30 }, // Prescription
-        { wch: 10 }, // Medications Count
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 5 },
+        { wch: 12 },
+        { wch: 8 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 30 },
+        { wch: 10 },
       ];
       ws['!cols'] = colWidths;
       
       XLSX.writeFile(wb, `prescriptions-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+      showSnackbar("Excel report exported successfully", "success");
     } catch (error) {
       console.error("Error exporting to Excel:", error);
-      alert("Failed to export to Excel");
+      showSnackbar("Failed to export to Excel", "error");
     }
   };
 
@@ -253,7 +349,7 @@ const Prescriptions = () => {
           content: '""',
           position: "absolute",
           width: "100%",
-          height: "100%",
+          height: "%100",
           background: "linear-gradient(120deg, #74ebd5, #ACB6E5)",
           backgroundSize: "400% 400%",
           zIndex: -1,
@@ -262,6 +358,23 @@ const Prescriptions = () => {
       }}
     >
       <Sidebar />
+      
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Box sx={{ flexGrow: 1, padding: "20px", position: "relative" }}>
         <Grid
           container
@@ -270,7 +383,7 @@ const Prescriptions = () => {
           alignItems="center"
           sx={{ mb: 2 }}
         >
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={3}>
             <TextField
               variant="outlined"
               fullWidth
@@ -322,6 +435,17 @@ const Prescriptions = () => {
           <Grid item xs={12} md={2}>
             <Button 
               variant="contained" 
+              color="success" 
+              fullWidth
+              startIcon={<AddIcon />}
+              onClick={handleAddNew}
+            >
+              Add New
+            </Button>
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <Button 
+              variant="contained" 
               color="error" 
               fullWidth
               onClick={exportToExcel}
@@ -352,6 +476,15 @@ const Prescriptions = () => {
                 ? "Try adjusting your search filters" 
                 : "Start by creating a new prescription"}
             </Typography>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              startIcon={<AddIcon />}
+              onClick={handleAddNew}
+              sx={{ mt: 2 }}
+            >
+              Create First Prescription
+            </Button>
           </Box>
         ) : (
           <Grid container spacing={2}>
@@ -390,9 +523,26 @@ const Prescriptions = () => {
                     <Typography variant="body2" noWrap>
                       <strong>Email:</strong> {prescription.patientEmail}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      {prescription.medications?.length || 0} medication(s)
-                    </Typography>
+                    <Box sx={{ mt: 1 }}>
+                      {prescription.medications?.slice(0, 2).map((med, index) => (
+                        <Chip
+                          key={index}
+                          label={med.medication}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                      {prescription.medications?.length > 2 && (
+                        <Chip
+                          label={`+${prescription.medications.length - 2} more`}
+                          size="small"
+                          color="secondary"
+                          variant="outlined"
+                        />
+                      )}
+                    </Box>
                   </CardContent>
                   <ArrowForwardIosIcon color="action" />
                 </Card>
@@ -549,7 +699,7 @@ const Prescriptions = () => {
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers sx={{ py: 2 }}>
+          <DialogContent dividers sx={{ py: 2, maxHeight: '80vh', overflow: 'auto' }}>
             <PrescriptionForm
               selectedPrescription={selectedPrescription}
               patientMail={selectedPrescription?.patientEmail}

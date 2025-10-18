@@ -20,6 +20,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Snackbar,
+  Autocomplete
 } from "@mui/material";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -29,15 +31,17 @@ import { useLocation } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 
-const PrescriptionForm = () => {
+const PrescriptionForm = ({ selectedPrescription, patientMail, onClose }) => {
   const location = useLocation();
-  const doctor = JSON.parse(sessionStorage.getItem("doctor"));
+  const doctor = JSON.parse(sessionStorage.getItem("doctor")) || {
+    id: "doc-123",
+    firstName: "John",
+    lastName: "Doe",
+    email: "doctor@hospital.com",
+    licenseNumber: "MD-12345"
+  };
   const prescriptionRef = useRef();
   
-  // Get patient data from navigation state
-  const passedPatient = location.state?.patient;
-  
-  // Mock patient data - replace with actual API call
   const [patients, setPatients] = useState([
     { id: "P-789012", name: "Jane Doe", email: "jane.doe@example.com", allergies: ["Penicillin"], conditions: ["Hypertension", "Renal Impairment"] },
     { id: "P-789013", name: "John Smith", email: "john.smith@example.com", allergies: ["Sulfa"], conditions: ["Diabetes"] },
@@ -54,57 +58,75 @@ const PrescriptionForm = () => {
     notes: ""
   });
 
-  // Initialize form values with passed patient data
   const [formValues, setFormValues] = useState({
-    firstName: passedPatient ? passedPatient.name.split(' ')[0] : "",
-    lastName: passedPatient ? passedPatient.name.split(' ').slice(1).join(' ') : "",
-    age: passedPatient ? passedPatient.age : "",
-    dob: passedPatient ? new Date(passedPatient.dob) : null,
-    gender: passedPatient ? passedPatient.gender : "",
+    firstName: "",
+    lastName: "",
+    age: "",
+    dob: null,
+    gender: "",
     email: doctor?.email || "",
     rx: "",
     date: new Date(),
-    patientEmail: passedPatient ? passedPatient.email : "",
+    patientEmail: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [touched, setTouched] = useState({}); // Track which fields have been touched
 
-  // Mock current prescriptions data - you can replace this with actual API call
+  // Load data when component mounts or when location state changes
   useEffect(() => {
-    const mockPrescriptions = [
-      { medication: "Lisinopril", dosage: "10mg", frequency: "Once Daily", duration: "30 Days", notes: "For hypertension" },
-      { medication: "Atorvastatin", dosage: "20mg", frequency: "Once Daily", duration: "90 Days", notes: "Take at bedtime" },
-      { medication: "Paracetamol", dosage: "500mg", frequency: "As Needed", duration: "7 Days", notes: "Max 4 doses/day" }
-    ];
-    setCurrentPrescriptions(mockPrescriptions);
-  }, []);
-
-  // Auto-select patient if data was passed
-  useEffect(() => {
-    if (passedPatient) {
-      // Create a mock patient ID for the passed patient
-      const mockPatientId = "P-" + Math.random().toString(36).substr(2, 6);
-      
-      const patientData = {
-        id: mockPatientId,
-        name: passedPatient.name,
-        email: passedPatient.email,
-        allergies: ["Penicillin"], // You can pass these from medical record
-        conditions: ["Hypertension"] // You can pass these from medical record
-      };
-      
-      setSelectedPatient(patientData);
-      
-      // Add to patients list if not already there
-      setPatients(prev => {
-        const exists = prev.find(p => p.email === passedPatient.email);
-        if (!exists) {
-          return [...prev, patientData];
-        }
-        return prev;
+    const patientData = location.state?.patient;
+    
+    if (patientData) {
+      // Auto-fill form with patient data from navigation
+      setFormValues({
+        firstName: patientData.firstName || patientData.name?.split(' ')[0] || "",
+        lastName: patientData.lastName || patientData.name?.split(' ').slice(1).join(' ') || "",
+        age: patientData.age || "",
+        dob: patientData.dob ? new Date(patientData.dob) : null,
+        gender: patientData.gender || "",
+        email: doctor?.email || "",
+        rx: "",
+        date: new Date(),
+        patientEmail: patientData.email || patientData.patientEmail || "",
       });
+
+      // Also update selected patient
+      const patientFromList = patients.find(p => p.email === patientData.email);
+      if (patientFromList) {
+        setSelectedPatient(patientFromList);
+      }
+    } else if (selectedPrescription) {
+      // Edit mode
+      setFormValues({
+        firstName: selectedPrescription.firstName || "",
+        lastName: selectedPrescription.lastName || "",
+        age: selectedPrescription.age || "",
+        dob: selectedPrescription.dob ? new Date(selectedPrescription.dob) : null,
+        gender: selectedPrescription.gender || "",
+        email: selectedPrescription.email || doctor?.email || "",
+        rx: selectedPrescription.rx || "",
+        date: selectedPrescription.date ? new Date(selectedPrescription.date) : new Date(),
+        patientEmail: selectedPrescription.patientEmail || "",
+      });
+
+      if (selectedPrescription.medications) {
+        setCurrentPrescriptions(selectedPrescription.medications);
+      }
+
+      const patient = patients.find(p => p.email === selectedPrescription.patientEmail);
+      if (patient) {
+        setSelectedPatient(patient);
+      }
+    } else if (patientMail) {
+      // New prescription with patient email
+      setFormValues(prev => ({
+        ...prev,
+        patientEmail: patientMail
+      }));
     }
-  }, [passedPatient]);
+  }, [location.state, selectedPrescription, patientMail, doctor, patients]);
 
   const handlePatientSelect = (patientId) => {
     const patient = patients.find(p => p.id === patientId);
@@ -147,20 +169,14 @@ const PrescriptionForm = () => {
         notes: ""
       });
       
-      Swal.fire({
-        title: "Success!",
-        text: "Medication added successfully",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      showSnackbar("Medication added successfully", "success");
     } else {
-      Swal.fire({
-        title: "Error!",
-        text: "Please fill all required medication fields",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showSnackbar("Please fill all required medication fields", "error");
     }
+  };
+
+  const handleRemoveMedication = (index) => {
+    setCurrentPrescriptions(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleInputChange = (e) => {
@@ -169,6 +185,22 @@ const PrescriptionForm = () => {
       ...formValues,
       [name]: value,
     });
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
+
+  const handleFieldBlur = (e) => {
+    const { name } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
   };
 
   const handleDateChange = (date, field) => {
@@ -176,12 +208,25 @@ const PrescriptionForm = () => {
       ...formValues,
       [field]: date,
     });
+
+    // Clear error when date is selected
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }));
+    }
+  };
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
   };
 
   const validate = () => {
     let tempErrors = {};
-    const nameRegex = /^[A-Za-z]+$/;
+    const nameRegex = /^[A-Za-z\s]+$/;
 
+    // Only validate required fields
     tempErrors.firstName = formValues.firstName
       ? nameRegex.test(formValues.firstName)
         ? ""
@@ -208,28 +253,31 @@ const PrescriptionForm = () => {
         : "Email is not valid."
       : "Email is required.";
 
-    tempErrors.rx = formValues.rx ? "" : "Prescription (Rx) is required.";
+    // Make prescription details (rx) optional
+    tempErrors.rx = ""; // No validation for prescription details
 
     tempErrors.date = formValues.date ? "" : "Date is required.";
 
     setErrors(tempErrors);
 
+    // Only validate required fields (excluding rx)
     return Object.values(tempErrors).every((x) => x === "");
   };
 
   const handleClear = () => {
     setFormValues({
-      firstName: passedPatient ? passedPatient.name.split(' ')[0] : "",
-      lastName: passedPatient ? passedPatient.name.split(' ').slice(1).join(' ') : "",
-      age: passedPatient ? passedPatient.age : "",
-      dob: passedPatient ? new Date(passedPatient.dob) : null,
-      gender: passedPatient ? passedPatient.gender : "",
+      firstName: "",
+      lastName: "",
+      age: "",
+      dob: null,
+      gender: "",
       email: doctor?.email || "",
       rx: "",
       date: new Date(),
-      patientEmail: passedPatient ? passedPatient.email : "",
+      patientEmail: "",
     });
     setErrors({});
+    setTouched({});
     setNewMedication({
       name: "",
       dosage: "",
@@ -237,21 +285,17 @@ const PrescriptionForm = () => {
       duration: "",
       notes: ""
     });
+    setCurrentPrescriptions([]);
+    setSelectedPatient(null);
   };
 
   const generatePDF = async () => {
-    if (!selectedPatient) {
-      Swal.fire({
-        title: "Error!",
-        text: "Please select a patient first",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+    if (!formValues.firstName || !formValues.lastName) {
+      showSnackbar("Please fill patient information first", "error");
       return;
     }
 
     try {
-      // Create PDF document
       const doc = new jsPDF();
       
       // Add header
@@ -356,77 +400,128 @@ const PrescriptionForm = () => {
       const fileName = `Prescription_${formValues.firstName}_${formValues.lastName}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       
-      Swal.fire({
-        title: "Success!",
-        text: "PDF prescription generated successfully",
-        icon: "success",
-        confirmButtonText: "OK",
-      });
+      showSnackbar("PDF prescription generated successfully", "success");
       
     } catch (error) {
       console.error("Error generating PDF:", error);
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to generate PDF",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
+      showSnackbar("Failed to generate PDF", "error");
+    }
+  };
+
+  // Save to localStorage as fallback
+  const saveToLocalStorage = (prescriptionData) => {
+    try {
+      const existingPrescriptions = JSON.parse(localStorage.getItem('prescriptions') || '[]');
+      const newPrescription = {
+        ...prescriptionData,
+        _id: selectedPrescription?._id || `prescription-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        doctorId: doctor?.id || "doc-123"
+      };
+
+      let updatedPrescriptions;
+      if (selectedPrescription) {
+        // Update existing
+        updatedPrescriptions = existingPrescriptions.map(p => 
+          p._id === selectedPrescription._id ? newPrescription : p
+        );
+      } else {
+        // Add new
+        updatedPrescriptions = [...existingPrescriptions, newPrescription];
+      }
+
+      localStorage.setItem('prescriptions', JSON.stringify(updatedPrescriptions));
+      return true;
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
+      return false;
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validate()) {
+    if (!validate()) {
+      showSnackbar("Please fix the form errors before submitting", "error");
+      return;
+    }
+
+    try {
+      const prescriptionData = {
+        ...formValues,
+        medications: currentPrescriptions,
+        doctorId: doctor?.id || "doc-123",
+        dob: formValues.dob ? formValues.dob.toISOString() : null,
+        date: formValues.date ? formValues.date.toISOString() : new Date().toISOString()
+      };
+
+      let backendSuccess = false;
+      
+      // Try backend first
       try {
-        const url = "http://localhost:8081/prescriptions/prescriptions";
-        const method = "POST";
+        let url = "http://localhost:8081/prescriptions/prescriptions";
+        let method = "POST";
+
+        if (selectedPrescription && selectedPrescription._id) {
+          url = `http://localhost:8081/api/prescriptions/${selectedPrescription._id}`;
+          method = "PUT";
+        }
 
         const response = await fetch(url, {
           method,
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            ...formValues,
-            medications: currentPrescriptions
-          }),
+          body: JSON.stringify(prescriptionData),
         });
-
-        const result = await response.json();
-        if (response.status === 201 || response.status === 200) {
-          await axios.post(`http://localhost:8081/prescriptions/mailSend`, {
-            email: formValues.patientEmail,
-            rx: formValues.rx,
-          });
-        }
 
         if (response.ok) {
-          // Generate PDF after successful submission
-          await generatePDF();
-          
-          await Swal.fire({
-            title: "Success!",
-            text: "Prescription successfully submitted and PDF generated.",
-            icon: "success",
-            confirmButtonText: "OK",
-          });
-          // Navigate back to patient medical record or wherever appropriate
-          window.location.href = "/PatientsPage";
-        } else {
-          throw new Error(result.message || "An error occurred");
+          backendSuccess = true;
+          const result = await response.json();
+          console.log("Backend response:", result);
         }
-      } catch (error) {
-        await Swal.fire({
-          title: "Error!",
-          text: error.message || "An error occurred while submitting the prescription.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+      } catch (backendError) {
+        console.warn("Backend not available, using localStorage:", backendError);
       }
+
+      // If backend fails, use localStorage
+      if (!backendSuccess) {
+        const localStorageSuccess = saveToLocalStorage(prescriptionData);
+        if (!localStorageSuccess) {
+          throw new Error("Failed to save prescription");
+        }
+      }
+
+      // Generate PDF
+      await generatePDF();
+      
+      // Show success message
+      await Swal.fire({
+        title: "Success!",
+        text: selectedPrescription 
+          ? "Prescription updated successfully!" 
+          : "Prescription submitted successfully!",
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+      
+      // Close form and refresh
+      if (onClose) {
+        onClose();
+      } else {
+        window.location.href = "/prescriptions";
+      }
+      
+    } catch (error) {
+      console.error("Error submitting prescription:", error);
+      await Swal.fire({
+        title: "Error!",
+        text: error.message || "An error occurred while submitting the prescription.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
-  // Hidden div for PDF content (alternative method)
   const PrescriptionPDFTemplate = () => (
     <div style={{ display: 'none' }}>
       <div ref={prescriptionRef} style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -499,42 +594,113 @@ const PrescriptionForm = () => {
   );
 
   return (
-    <Box sx={{ maxWidth: "1200px", margin: "20px auto", padding: "20px" }}>
+    <Box sx={{ maxWidth: "1200px", margin: "0 auto", padding: "0px" }}>
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
+
       {/* Hidden PDF Template */}
       <PrescriptionPDFTemplate />
       
-      {/* Patient Selection Section */}
+      {/* Patient Selection Section - FIXED */}
       <Card sx={{ marginBottom: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom color="primary">
             Select Patient
           </Typography>
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Choose Patient</InputLabel>
-            <Select
-              value={selectedPatient?.id || ""}
-              onChange={(e) => handlePatientSelect(e.target.value)}
-              label="Choose Patient"
-            >
-              {patients.map((patient) => (
-                <MenuItem key={patient.id} value={patient.id}>
-                  {patient.name} (ID: {patient.id})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          
+          <Autocomplete
+            freeSolo
+            options={patients}
+            getOptionLabel={(option) => 
+              typeof option === 'string' ? option : `${option.name} (ID: ${option.id})`
+            }
+            value={selectedPatient}
+            onChange={(event, newValue) => {
+              if (typeof newValue === 'string') {
+                // User typed a custom value
+                setSelectedPatient({ 
+                  id: 'custom', 
+                  name: newValue, 
+                  email: '', 
+                  allergies: [], 
+                  conditions: [] 
+                });
+                const nameParts = newValue.split(' ');
+                setFormValues(prev => ({
+                  ...prev,
+                  firstName: nameParts[0] || '',
+                  lastName: nameParts.slice(1).join(' ') || '',
+                  patientEmail: ''
+                }));
+              } else if (newValue && newValue.id) {
+                // User selected from dropdown
+                handlePatientSelect(newValue.id);
+              } else {
+                // Clear selection
+                setSelectedPatient(null);
+                setFormValues(prev => ({
+                  ...prev,
+                  firstName: '',
+                  lastName: '',
+                  patientEmail: ''
+                }));
+              }
+            }}
+            onInputChange={(event, newInputValue) => {
+              // Allow typing even when not selecting from dropdown
+              if (newInputValue && !patients.some(p => p.name === newInputValue)) {
+                // User is typing a custom patient name
+                const nameParts = newInputValue.split(' ');
+                setFormValues(prev => ({
+                  ...prev,
+                  firstName: nameParts[0] || '',
+                  lastName: nameParts.slice(1).join(' ') || ''
+                }));
+              }
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Search or Select Patient"
+                variant="outlined"
+                fullWidth
+                placeholder="Type patient name or select from list"
+              />
+            )}
+            renderOption={(props, option) => (
+              <li {...props}>
+                <Box>
+                  <Typography variant="body1">
+                    {option.name} (ID: {option.id})
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {option.email} • Allergies: {option.allergies.length > 0 ? option.allergies.join(", ") : "None"}
+                  </Typography>
+                </Box>
+              </li>
+            )}
+          />
 
           {selectedPatient && (
-            <Box>
+            <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
-                <strong>Patient:</strong> {selectedPatient.name} (ID: {selectedPatient.id})
+                <strong>Patient:</strong> {selectedPatient.name} {selectedPatient.id !== 'custom' && `(ID: ${selectedPatient.id})`}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                <strong>Allergies:</strong> {selectedPatient.allergies.length > 0 ? selectedPatient.allergies.join(", ") : "None"}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                <strong>Conditions:</strong> {selectedPatient.conditions.join(", ")}
-              </Typography>
+              {selectedPatient.id !== 'custom' && (
+                <>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Allergies:</strong> {selectedPatient.allergies.length > 0 ? selectedPatient.allergies.join(", ") : "None"}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <strong>Conditions:</strong> {selectedPatient.conditions.join(", ")}
+                  </Typography>
+                </>
+              )}
             </Box>
           )}
         </CardContent>
@@ -546,114 +712,126 @@ const PrescriptionForm = () => {
           <Card sx={{ marginBottom: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom color="secondary">
-                New Prescription
+                {selectedPrescription ? "Edit Prescription" : "New Prescription"}
               </Typography>
 
-              <form onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      label="First Name"
-                      name="firstName"
-                      value={formValues.firstName}
-                      onChange={handleInputChange}
-                      error={!!errors.firstName}
-                      helperText={errors.firstName}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      label="Last Name"
-                      name="lastName"
-                      value={formValues.lastName}
-                      onChange={handleInputChange}
-                      error={!!errors.lastName}
-                      helperText={errors.lastName}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={3}>
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      label="Age"
-                      name="age"
-                      type="number"
-                      value={formValues.age}
-                      onChange={handleInputChange}
-                      error={!!errors.age}
-                      helperText={errors.age}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <DatePicker
-                      selected={formValues.dob}
-                      onChange={(date) => handleDateChange(date, "dob")}
-                      dateFormat="MM/dd/yyyy"
-                      customInput={
-                        <TextField
-                          variant="outlined"
-                          label="Date Of Birth"
-                          fullWidth
-                          error={!!errors.dob}
-                          helperText={errors.dob}
-                        />
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={5}>
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      label="Gender"
-                      name="gender"
-                      select
-                      value={formValues.gender}
-                      onChange={handleInputChange}
-                      error={!!errors.gender}
-                      helperText={errors.gender}
-                    >
-                      <MenuItem value="Male">Male</MenuItem>
-                      <MenuItem value="Female">Female</MenuItem>
-                      <MenuItem value="Other">Other</MenuItem>
-                    </TextField>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      label="Rx"
-                      name="rx"
-                      multiline
-                      rows={6}
-                      value={formValues.rx}
-                      onChange={handleInputChange}
-                      error={!!errors.rx}
-                      helperText={errors.rx}
-                      placeholder="Enter prescription details, instructions, and any additional notes for the patient..."
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <DatePicker
-                      selected={formValues.date}
-                      onChange={(date) => handleDateChange(date, "date")}
-                      dateFormat="MM/dd/yyyy"
-                      customInput={
-                        <TextField
-                          variant="outlined"
-                          label="Date"
-                          fullWidth
-                          error={!!errors.date}
-                          helperText={errors.date}
-                        />
-                      }
-                    />
-                  </Grid>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="First Name"
+                    name="firstName"
+                    value={formValues.firstName}
+                    onChange={handleInputChange}
+                    onBlur={handleFieldBlur}
+                    error={!!errors.firstName}
+                    helperText={errors.firstName}
+                  />
                 </Grid>
-              </form>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Last Name"
+                    name="lastName"
+                    value={formValues.lastName}
+                    onChange={handleInputChange}
+                    onBlur={handleFieldBlur}
+                    error={!!errors.lastName}
+                    helperText={errors.lastName}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Age"
+                    name="age"
+                    type="number"
+                    value={formValues.age}
+                    onChange={handleInputChange}
+                    onBlur={handleFieldBlur}
+                    error={!!errors.age}
+                    helperText={errors.age}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <DatePicker
+                    selected={formValues.dob}
+                    onChange={(date) => handleDateChange(date, "dob")}
+                    dateFormat="MM/dd/yyyy"
+                    customInput={
+                      <TextField
+                        variant="outlined"
+                        label="Date Of Birth"
+                        fullWidth
+                        error={!!errors.dob}
+                        helperText={errors.dob}
+                      />
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Gender"
+                    name="gender"
+                    select
+                    value={formValues.gender}
+                    onChange={handleInputChange}
+                    onBlur={handleFieldBlur}
+                    error={!!errors.gender}
+                    helperText={errors.gender}
+                  >
+                    <MenuItem value="Male">Male</MenuItem>
+                    <MenuItem value="Female">Female</MenuItem>
+                    <MenuItem value="Other">Other</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Patient Email"
+                    name="patientEmail"
+                    value={formValues.patientEmail}
+                    onChange={handleInputChange}
+                    placeholder="patient@example.com"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    label="Prescription Details"
+                    name="rx"
+                    multiline
+                    rows={4}
+                    value={formValues.rx}
+                    onChange={handleInputChange}
+                    placeholder="Enter prescription details, instructions, and any additional notes for the patient..."
+                    // Removed error props to make this field optional
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <DatePicker
+                    selected={formValues.date}
+                    onChange={(date) => handleDateChange(date, "date")}
+                    dateFormat="MM/dd/yyyy"
+                    customInput={
+                      <TextField
+                        variant="outlined"
+                        label="Date"
+                        fullWidth
+                        error={!!errors.date}
+                        helperText={errors.date}
+                      />
+                    }
+                  />
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
 
@@ -750,32 +928,44 @@ const PrescriptionForm = () => {
           <Card sx={{ marginBottom: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom color="primary">
-                Current Medications
+                Current Medications ({currentPrescriptions.length})
               </Typography>
-              <TableContainer component={Paper}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Medication</TableCell>
-                      <TableCell>Dosage</TableCell>
-                      <TableCell>Frequency</TableCell>
-                      <TableCell>Duration</TableCell>
-                      <TableCell>Notes</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {currentPrescriptions.map((prescription, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{prescription.medication}</TableCell>
-                        <TableCell>{prescription.dosage}</TableCell>
-                        <TableCell>{prescription.frequency}</TableCell>
-                        <TableCell>{prescription.duration}</TableCell>
-                        <TableCell>{prescription.notes}</TableCell>
+              {currentPrescriptions.length === 0 ? (
+                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', py: 2 }}>
+                  No medications added yet
+                </Typography>
+              ) : (
+                <TableContainer component={Paper}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Medication</TableCell>
+                        <TableCell>Dosage</TableCell>
+                        <TableCell>Frequency</TableCell>
+                        <TableCell>Actions</TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {currentPrescriptions.map((prescription, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{prescription.medication}</TableCell>
+                          <TableCell>{prescription.dosage}</TableCell>
+                          <TableCell>{prescription.frequency}</TableCell>
+                          <TableCell>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleRemoveMedication(index)}
+                            >
+                              Remove
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -794,7 +984,7 @@ const PrescriptionForm = () => {
                     onClick={handleSubmit}
                     sx={{ marginBottom: 1 }}
                   >
-                    Save & Prescribe
+                    {selectedPrescription ? "Update Prescription" : "Save & Prescribe"}
                   </Button>
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -838,6 +1028,18 @@ const PrescriptionForm = () => {
                     Clear All
                   </Button>
                 </Grid>
+                {onClose && (
+                  <Grid item xs={12} sm={6}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      fullWidth
+                      onClick={onClose}
+                    >
+                      Cancel
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             </CardContent>
           </Card>

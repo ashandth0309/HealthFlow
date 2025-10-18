@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom"; // Added useLocation and useNavigate
+import { useLocation, useNavigate } from "react-router-dom";
 import Navar from "./Navar";
 import "./RoomAssignment.css";
 
@@ -13,137 +13,110 @@ function AdminDisplayPage() {
   const [error, setError] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [selectedPatient, setSelectedPatient] = useState("");
-  const [rooms, setRooms] = useState({
-    ward: [],
-    private: [],
-    icu: []
-  });
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get appointment data from navigation state
   const appointmentData = location.state?.appointmentData;
 
-  // Mock room data
-  const initialRooms = {
-    ward: [
-      { id: "W-101", status: "available", type: "ward" },
-      { id: "W-102", status: "occupied", type: "ward" },
-      { id: "W-103", status: "available", type: "ward" },
-      { id: "W-104", status: "cleaning", type: "ward" },
-      { id: "W-105", status: "occupied", type: "ward" },
-      { id: "W-106", status: "available", type: "ward" },
-      { id: "W-107", status: "occupied", type: "ward" },
-      { id: "W-108", status: "available", type: "ward" },
-      { id: "W-109", status: "cleaning", type: "ward" },
-      { id: "W-110", status: "occupied", type: "ward" },
-      { id: "W-111", status: "available", type: "ward" },
-      { id: "W-112", status: "available", type: "ward" },
-      { id: "W-113", status: "occupied", type: "ward" },
-      { id: "W-114", status: "available", type: "ward" },
-      { id: "W-115", status: "cleaning", type: "ward" }
-    ],
-    private: [
-      { id: "P-201", status: "available", type: "private" },
-      { id: "P-202", status: "occupied", type: "private" },
-      { id: "P-203", status: "available", type: "private" },
-      { id: "P-204", status: "cleaning", type: "private" },
-      { id: "P-205", status: "occupied", type: "private" },
-      { id: "P-206", status: "available", type: "private" },
-      { id: "P-207", status: "occupied", type: "private" },
-      { id: "P-208", status: "available", type: "private" }
-    ],
-    icu: [
-      { id: "I-301", status: "available", type: "icu" },
-      { id: "I-302", status: "cleaning", type: "icu" },
-      { id: "I-303", status: "occupied", type: "icu" },
-      { id: "I-304", status: "available", type: "icu" },
-      { id: "I-305", status: "available", type: "icu" }
-    ]
-  };
-
-  // Initialize patient details with appointment data if available
   const [patientDetails, setPatientDetails] = useState({
-    patientID: appointmentData?.doctorAppoimentID || "HF-00123",
-    name: appointmentData?.fullname || "Alice Johnson",
-    assignedDoctor: appointmentData?.doctorname || "Dr. Emily Davis",
-    phone: appointmentData?.phone || "",
-    email: appointmentData?.gmail || ""
+    patientID: "",
+    name: "",
+    assignedDoctor: "",
+    phone: "",
+    email: ""
   });
 
   useEffect(() => {
-    const fetchAdmitData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8081/admit");
-        setAdmitData(response.data.admit);
-        setFilteredData(response.data.admit);
-        setError("");
-      } catch (err) {
-        setError("Failed to fetch data");
-        setAdmitData([]);
-        setFilteredData([]);
+    initializeData();
+  }, []);
+
+  const initializeData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch admit data
+      const admitResponse = await axios.get("http://localhost:8081/api/admit");
+      setAdmitData(admitResponse.data.admit);
+      setFilteredData(admitResponse.data.admit);
+
+      // Fetch rooms data
+      const roomsResponse = await axios.get("http://localhost:8081/api/rooms");
+      if (roomsResponse.data.rooms.length === 0) {
+        // Initialize sample rooms if none exist
+        await axios.post("http://localhost:8081/api/rooms/initialize");
+        const newRoomsResponse = await axios.get("http://localhost:8081/api/rooms");
+        setRooms(newRoomsResponse.data.rooms);
+      } else {
+        setRooms(roomsResponse.data.rooms);
       }
-    };
 
-    fetchAdmitData();
-    setRooms(initialRooms);
-
-    // If appointment data exists, auto-select the patient if they exist in admit data
-    if (appointmentData) {
-      setTimeout(() => {
-        const existingPatient = admitData.find(
-          admit => admit.fullname === appointmentData.fullname && 
-          admit.phone === appointmentData.phone
-        );
-        if (existingPatient) {
-          setSelectedPatient(existingPatient._id);
-        }
-      }, 1000);
+      setError("");
+    } catch (err) {
+      console.error("Error initializing data:", err);
+      setError("Failed to fetch data. Please check if the server is running.");
+    } finally {
+      setLoading(false);
     }
-  }, [appointmentData]);
+  };
 
   useEffect(() => {
-    if (selectedPatient) {
-      const patient = admitData.find(admit => admit._id === selectedPatient);
-      if (patient) {
+    if (appointmentData && admitData.length > 0) {
+      const existingPatient = admitData.find(
+        admit => admit.fullname === appointmentData.fullname && 
+        admit.phone === appointmentData.phone
+      );
+      if (existingPatient) {
+        setSelectedPatient(existingPatient._id);
+        updatePatientDetails(existingPatient);
+      } else {
+        // Set patient details from appointment data
         setPatientDetails({
-          patientID: patient.admitID || appointmentData?.doctorAppoimentID || "HF-00123",
-          name: patient.fullname || appointmentData?.fullname || "Alice Johnson",
-          assignedDoctor: patient.assignedDoctor || appointmentData?.doctorname || "Dr. Emily Davis",
-          phone: patient.phone || appointmentData?.phone || "",
-          email: patient.email || appointmentData?.gmail || ""
+          patientID: appointmentData.doctorAppoimentID || "HF-00123",
+          name: appointmentData.fullname || "",
+          assignedDoctor: appointmentData.doctorname || "",
+          phone: appointmentData.phone || "",
+          email: appointmentData.gmail || ""
         });
       }
-    } else if (appointmentData) {
-      // Use appointment data if no patient is selected but appointment data exists
+    }
+  }, [admitData, appointmentData]);
+
+  const updatePatientDetails = (patient) => {
+    if (patient) {
       setPatientDetails({
-        patientID: appointmentData.doctorAppoimentID,
-        name: appointmentData.fullname,
-        assignedDoctor: appointmentData.doctorname,
-        phone: appointmentData.phone,
-        email: appointmentData.gmail
+        patientID: patient.admitID || patient.patientID || "",
+        name: patient.fullname || "",
+        assignedDoctor: patient.assignedDoctor || "",
+        phone: patient.phone || "",
+        email: patient.email || patient.gmail || ""
       });
     }
-  }, [selectedPatient, admitData, appointmentData]);
+  };
 
   const handleSearch = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
     const filtered = admitData.filter((admit) =>
       Object.values(admit).some((val) =>
-        val.toString().toLowerCase().includes(value)
+        val && val.toString().toLowerCase().includes(value)
       )
     );
     setFilteredData(filtered);
   };
 
   const handleRoomSelect = (roomId) => {
-    setSelectedRoom(roomId);
+    const room = rooms.find(r => r.roomId === roomId);
+    if (room && room.status === "available") {
+      setSelectedRoom(roomId);
+    }
   };
 
   const handlePatientSelect = (admitId) => {
     setSelectedPatient(admitId);
+    const patient = admitData.find(admit => admit._id === admitId);
+    updatePatientDetails(patient);
   };
 
-  // Function to create new admit record from appointment data
   const createAdmitFromAppointment = async () => {
     if (!appointmentData) return null;
 
@@ -151,15 +124,20 @@ function AdminDisplayPage() {
       const newAdmit = {
         admitID: `ADM-${Date.now()}`,
         fullname: appointmentData.fullname,
+        nic: appointmentData.nic || "Not Provided",
         phone: appointmentData.phone,
-        gmail: appointmentData.gmail,
+        email: appointmentData.gmail,
         assignedDoctor: appointmentData.doctorname,
         status: "Pending Admission",
         roomId: "",
-        date: new Date().toISOString().split('T')[0]
+        appointmentData: appointmentData
       };
 
-      const response = await axios.post("http://localhost:8081/admit", newAdmit);
+      const response = await axios.post("http://localhost:8081/api/admit", newAdmit);
+      // Update local state
+      setAdmitData(prev => [...prev, response.data.admit]);
+      setFilteredData(prev => [...prev, response.data.admit]);
+      
       return response.data.admit._id;
     } catch (error) {
       console.error("Error creating admit record:", error);
@@ -168,69 +146,106 @@ function AdminDisplayPage() {
   };
 
   const assignRoom = async () => {
-    if (!selectedRoom) {
-      alert("Please select a room");
-      return;
-    }
+  if (!selectedRoom) {
+    alert("Please select a room");
+    return;
+  }
 
-    let patientId = selectedPatient;
+  let patientId = selectedPatient;
 
-    // If no patient is selected but we have appointment data, create a new admit record
-    if (!patientId && appointmentData) {
-      patientId = await createAdmitFromAppointment();
-      if (!patientId) {
-        alert("Failed to create patient record");
-        return;
-      }
-    }
-
+  // If no patient is selected but we have appointment data, create a new admit record
+  if (!patientId && appointmentData) {
+    patientId = await createAdmitFromAppointment();
     if (!patientId) {
-      alert("Please select a patient");
+      alert("Failed to create patient record");
       return;
     }
+    setSelectedPatient(patientId);
+  }
 
-    try {
-      const patient = admitData.find(admit => admit._id === patientId) || {
-        fullname: appointmentData.fullname,
-        assignedDoctor: appointmentData.doctorname
-      };
+  if (!patientId) {
+    alert("Please select a patient");
+    return;
+  }
 
-      const updatedRooms = { ...rooms };
-      Object.keys(updatedRooms).forEach(type => {
-        updatedRooms[type] = updatedRooms[type].map(room => 
-          room.id === selectedRoom ? { ...room, status: "occupied", patientId: patientId } : room
-        );
-      });
+  try {
+    console.log('Assigning room:', { selectedRoom, patientId });
+
+    // Use the new assign endpoint that handles both room and patient updates
+    const response = await axios.post('http://localhost:8081/api/rooms/assign', {
+      roomId: selectedRoom,
+      patientId: patientId
+    });
+
+    if (response.data.success) {
+      // Update local state for rooms
+      const updatedRooms = rooms.map(room => 
+        room.roomId === selectedRoom 
+          ? { ...room, status: "occupied", patientId: patientId }
+          : room
+      );
       setRooms(updatedRooms);
 
-      await axios.put(`http://localhost:8081/admit/${patientId}`, {
-        ...patient,
-        roomId: selectedRoom,
-        status: "Admitted"
-      });
+      // Update local state for admit data
+      const updatedAdmitData = admitData.map(admit =>
+        admit._id === patientId
+          ? { ...admit, roomId: selectedRoom, status: "Admitted" }
+          : admit
+      );
+      setAdmitData(updatedAdmitData);
+      setFilteredData(updatedAdmitData);
 
-      alert(`Room ${selectedRoom} assigned to ${patient.fullname} successfully!`);
+      // Update patient details if this patient is selected
+      if (selectedPatient === patientId) {
+        const updatedPatient = updatedAdmitData.find(admit => admit._id === patientId);
+        if (updatedPatient) {
+          setPatientDetails({
+            patientID: updatedPatient.admitID,
+            name: updatedPatient.fullname,
+            assignedDoctor: updatedPatient.assignedDoctor,
+            phone: updatedPatient.phone,
+            email: updatedPatient.email
+          });
+        }
+      }
+
+      alert(`Room ${selectedRoom} assigned to ${patientDetails.name} successfully!`);
       
-      // Refresh admit data
-      const response = await axios.get("http://localhost:8081/admit");
-      setAdmitData(response.data.admit);
-      setFilteredData(response.data.admit);
-      
+      // Reset selections
       setSelectedRoom("");
       setSelectedPatient("");
-      
-    } catch (error) {
-      console.error("Error assigning room:", error);
-      alert("Failed to assign room");
+    } else {
+      alert(response.data.error || "Failed to assign room");
     }
-  };
+    
+  } catch (error) {
+    console.error("Error assigning room:", error);
+    if (error.response && error.response.data) {
+      alert(`Failed to assign room: ${error.response.data.error}`);
+    } else {
+      alert("Failed to assign room. Please check your connection and try again.");
+    }
+  }
+};
+
+// Add this for debugging
+useEffect(() => {
+  console.log('Current State:', {
+    selectedRoom,
+    selectedPatient,
+    rooms: rooms.length,
+    admitData: admitData.length,
+    patientDetails
+  });
+}, [selectedRoom, selectedPatient, rooms, admitData, patientDetails]);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "available": return "green";
-      case "occupied": return "red";
-      case "cleaning": return "orange";
-      default: return "gray";
+      case "available": return "#28a745";
+      case "occupied": return "#dc3545";
+      case "cleaning": return "#ffc107";
+      case "maintenance": return "#6c757d";
+      default: return "#6c757d";
     }
   };
 
@@ -239,29 +254,43 @@ function AdminDisplayPage() {
       case "available": return "Available";
       case "occupied": return "Occupied";
       case "cleaning": return "Cleaning";
+      case "maintenance": return "Maintenance";
       default: return status;
     }
   };
+
+  const filterRoomsByType = (type) => {
+    return rooms.filter(room => room.type === type);
+  };
+
+  if (loading) {
+    return (
+      <div className="room-assignment-container">
+        <Navar />
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="room-assignment-container">
       <Navar />
       
-      <div className="main-container" style={{ marginLeft: '240px', padding: '20px' }}>
+      <div className="main-container">
+        {error && (
+          <div className="error-banner">
+            {error}
+          </div>
+        )}
         
         {/* Appointment Information Banner */}
         {appointmentData && (
-          <div className="appointment-banner" style={{
-            backgroundColor: '#e3f2fd',
-            border: '1px solid #2196f3',
-            borderRadius: '8px',
-            padding: '15px',
-            marginBottom: '20px'
-          }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#1976d2' }}>
-              Appointment Information
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+          <div className="appointment-banner">
+            <h3>Appointment Information</h3>
+            <div className="appointment-details-grid">
               <div><strong>Patient:</strong> {appointmentData.fullname}</div>
               <div><strong>Appointment ID:</strong> {appointmentData.doctorAppoimentID}</div>
               <div><strong>Doctor:</strong> {appointmentData.doctorname}</div>
@@ -297,7 +326,7 @@ function AdminDisplayPage() {
           </div>
         </div>
 
-        {/* Rest of the component remains the same */}
+        {/* Room Availability Section */}
         <div className="room-availability-section">
           <h2 className="section-title">Room Availability</h2>
           
@@ -305,19 +334,21 @@ function AdminDisplayPage() {
           <div className="room-category">
             <h3>Ward Rooms</h3>
             <div className="room-grid">
-              {rooms.ward.map(room => (
+              {filterRoomsByType('ward').map(room => (
                 <div 
-                  key={room.id}
-                  className={`room-card ${room.status} ${selectedRoom === room.id ? 'selected' : ''}`}
-                  onClick={() => room.status === "available" && handleRoomSelect(room.id)}
+                  key={room.roomId}
+                  className={`room-card ${room.status} ${selectedRoom === room.roomId ? 'selected' : ''}`}
+                  onClick={() => handleRoomSelect(room.roomId)}
                 >
-                  <div className="room-id">{room.id}</div>
+                  <div className="room-id">{room.roomId}</div>
+                  <div className="room-type">Ward ({room.capacity} beds)</div>
                   <div 
                     className="room-status" 
                     style={{ color: getStatusColor(room.status) }}
                   >
                     {getStatusText(room.status)}
                   </div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
@@ -327,19 +358,21 @@ function AdminDisplayPage() {
           <div className="room-category">
             <h3>Private Rooms</h3>
             <div className="room-grid">
-              {rooms.private.map(room => (
+              {filterRoomsByType('private').map(room => (
                 <div 
-                  key={room.id}
-                  className={`room-card ${room.status} ${selectedRoom === room.id ? 'selected' : ''}`}
-                  onClick={() => room.status === "available" && handleRoomSelect(room.id)}
+                  key={room.roomId}
+                  className={`room-card ${room.status} ${selectedRoom === room.roomId ? 'selected' : ''}`}
+                  onClick={() => handleRoomSelect(room.roomId)}
                 >
-                  <div className="room-id">{room.id}</div>
+                  <div className="room-id">{room.roomId}</div>
+                  <div className="room-type">Private Room</div>
                   <div 
                     className="room-status" 
                     style={{ color: getStatusColor(room.status) }}
                   >
                     {getStatusText(room.status)}
                   </div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
@@ -349,19 +382,21 @@ function AdminDisplayPage() {
           <div className="room-category">
             <h3>ICU Rooms</h3>
             <div className="room-grid">
-              {rooms.icu.map(room => (
+              {filterRoomsByType('icu').map(room => (
                 <div 
-                  key={room.id}
-                  className={`room-card ${room.status} ${selectedRoom === room.id ? 'selected' : ''}`}
-                  onClick={() => room.status === "available" && handleRoomSelect(room.id)}
+                  key={room.roomId}
+                  className={`room-card ${room.status} ${selectedRoom === room.roomId ? 'selected' : ''}`}
+                  onClick={() => handleRoomSelect(room.roomId)}
                 >
-                  <div className="room-id">{room.id}</div>
+                  <div className="room-id">{room.roomId}</div>
+                  <div className="room-type">ICU</div>
                   <div 
                     className="room-status" 
                     style={{ color: getStatusColor(room.status) }}
                   >
                     {getStatusText(room.status)}
                   </div>
+                  <div className="room-price">RS {room.price}/day</div>
                 </div>
               ))}
             </div>
@@ -393,7 +428,7 @@ function AdminDisplayPage() {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Search patients..."
+              placeholder="Search patients by name, phone, NIC, or admit ID..."
               value={searchTerm}
               className="search-input"
               onChange={handleSearch}
@@ -434,14 +469,18 @@ function AdminDisplayPage() {
                       <td>{admit.fullname}</td>
                       <td>{admit.nic}</td>
                       <td>{admit.phone}</td>
-                      <td>{admit.status || "Pending"}</td>
+                      <td>
+                        <span className={`status-badge status-${admit.status?.toLowerCase().replace(' ', '-')}`}>
+                          {admit.status || "Pending"}
+                        </span>
+                      </td>
                       <td>{admit.roomId || "Not Assigned"}</td>
                       <td>{admit.assignedDoctor || "Not Assigned"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8">No records found</td>
+                    <td colSpan="8" className="no-data">No patient records found</td>
                   </tr>
                 )}
               </tbody>
